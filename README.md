@@ -1,2 +1,2 @@
-sistemas-operativos-fiuba-2014-2do-cuatrimestre
+Trabajo Práctico de Sistemas Operativos
 ===============================================
