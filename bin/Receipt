@@ -1,0 +1,15 @@
+#!/bin/bash
+# Recive los archivos, verifica si son correctos
+# y los mueve a la carpeta en la que seran procesadas
+SLEEP_TIME=5
+CONTINUE=true
+
+procesarArchivos() {
+	echo 'receipt ejecutado dasdsa'
+}
+
+procesarArchivos
+while [[ $CONTINUE ]]; do
+	procesarArchivos
+	sleep $SLEEP_TIME
+done

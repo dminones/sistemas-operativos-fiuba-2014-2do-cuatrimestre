@@ -1,0 +1,17 @@
+#!/bin/bash
+pushd `dirname $0` > /dev/null
+SCRIPTPATH=`pwd`
+popd > /dev/null
+
+RECEIPT_PID_FILE=$SCRIPTPATH"/RECEIPT_PID"
+RECEIPT_LOG=$SCRIPTPATH"/Receipt3.log"
+
+getPid() {
+	if [ -f $1 ]; then
+	  	echo $(<"$1")
+	else
+		echo 0
+	fi
+}
+
+ReceiptPid=$(getPid $RECEIPT_PID_FILE)
