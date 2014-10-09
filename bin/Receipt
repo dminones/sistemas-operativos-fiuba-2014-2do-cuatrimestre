@@ -1,15 +1,45 @@
 #!/bin/bash
 # Recive los archivos, verifica si son correctos
 # y los mueve a la carpeta en la que seran procesadas
-SLEEP_TIME=5
-CONTINUE=true
+. Helpers
+
+SLEEP_TIME=10
+nroCiclo=0
+
+invocarFsoldes(){
+	$DIR="$ACEPDIR/*@*"
+	
+	if [ "$(ls -A $DIR)" ]; then
+     	Log "Take action $DIR is not Empty"
+	else
+	    Log "$DIR is Empty"
+	fi
+}
+
+procesarNovedad(){
+	$file = $1
+	Log "Procesando $f file..."
+	# take action on each file. $f store current file name
+  	cat $file
+}
 
 procesarArchivos() {
-	echo 'receipt ejecutado dasdsa'
+	Log "Recept ciclo nro."$nroCiclo
+
+	NOVEDIR_FILES=$NOVEDIR/*
+
+	for f in $NOVEDIR_FILES
+	do
+	  procesarNovedad f
+	done
+
+	invocarFsoldes
+	invocarCdosier
 }
 
 procesarArchivos
-while [[ $CONTINUE ]]; do
+while [[ true ]]; do
 	procesarArchivos
+	let nroCiclo++
 	sleep $SLEEP_TIME
 done

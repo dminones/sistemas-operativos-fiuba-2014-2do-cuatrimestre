@@ -1,0 +1,5 @@
+#!/bin/bash
+#Esqueleto de Log
+RECEIPT_LOG=Receipt.log
+
+echo $1 > $RECEIPT_LOG

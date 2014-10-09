@@ -4,10 +4,10 @@
 
 if [ $ReceiptPid == 0 ]; then
     echo -n "Iniciando Receipt...   "
-    $SCRIPTPATH/Receipt >$RECEIPT_LOG 2>&1 < /dev/null &
+    $BINDIR/Receipt >$INITLOG 2>&1 < /dev/null &
 	myPid=$!
 	echo $myPid > $RECEIPT_PID_FILE
 	echo "[OK]"
 else
-	echo "Receipt ya está ejecutandose"
+	echo "Recept corriendo bajo el no.: "$ReceiptPid
 fi
