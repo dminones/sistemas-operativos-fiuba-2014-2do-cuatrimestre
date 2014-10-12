@@ -16,5 +16,6 @@ log(){
 	echo "$MESSAGE" >> "$FILE_PATH"
 }
 
+
 # codigo de ejecucion
 log "$@"
