@@ -19,17 +19,31 @@ start_paths(){
 	BANCOS="bancos.dat"
 	BANCOS_FILE="$JOB_PATH$MAEDIR$BANCOS"
 	LOG_FILE="logdir/FSoldes"
+	ACEPDIR_PATH="$JOB_PATH$ACEPDIR"
+	SALDOS_LIS_FILE="saldos.lis"
 }
 
 format_bank(){
 	NAME=$1
 	LINEA=`grep "^$NAME" "$BANCOS_FILE"`
-#	ENTIDAD=`echo $LINEA | sed 's/;.*//'`
-#	CODIGO_ENTIDAD=`echo $LINEA | sed 's/[^;]*;\([^;]*\).*/\1/'`
-	UBIC_CBU=`echo $LINEA | sed 's/^[^;]*;[^;]*;[^;]*;\([^;]*\).*/\1/'`
-	UBIC_SALDO=`echo $LINEA | sed 's/^[^;]*;[^;]*;[^;]*;[^;]*;\([^;]*\).*/\1/'`
+	
+#	CODIGO_ENTIDAD=`echo $LINEA | sed 's/^[^;]*;\([^;]*\).*/\1/'`
+#	UBIC_CBU=`echo $LINEA | sed 's/^[^;]*;[^;]*;[^;]*;\([^;]*\).*/\1/'`
+#	UBIC_SALDO=`echo $LINEA | sed 's/^[^;]*;[^;]*;[^;]*;[^;]*;\([^;]*\).*/\1/'`
 	FORMAT_CBU=`echo $LINEA | sed 's/^.*;//'`
-#	log "format_bank()" "inf" "formateando banco: $ENTIDAD"
+	
+	FIELD_BLOCK='\([^;]*;\)'
+	REPEAT=1
+	CODIGO_ENTIDAD=`echo $LINEA | sed "s/^$FIELD_BLOCK\{$REPEAT\}\([^;]*\).*/\2/"`
+	
+	REPEAT=3
+	UBIC_CBU=`echo $LINEA | sed "s/^$FIELD_BLOCK\{$REPEAT\}\([^;]*\).*/\2/"`
+	
+	REPEAT=4
+	UBIC_SALDO=`echo $LINEA | sed "s/^$FIELD_BLOCK\{$REPEAT\}\([^;]*\).*/\2/"`
+	
+#	echo $LINEA | sed 's/^\([^;]*;\)\{3\}\([^;]*\).*/\2/'
+#	echo "$UBIC_SALDO"	
 }
 
 processFile(){
@@ -39,11 +53,23 @@ processFile(){
 	echo "banco: $BANCO"
 	FECHA=`echo $FILE | sed 's/^.*_//'`
 	format_bank "$BANCO"
-	echo "banco:$BANCO, ubic_cbu:$UBIC_CBU, ubic_saldo:$UBIC_SALDO, format_cbu:$FORMAT_CBU"
+	echo "banco:$BANCO,entidad:$CODIGO_ENTIDAD ubic_cbu:$UBIC_CBU, ubic_saldo:$UBIC_SALDO, format_cbu:$FORMAT_CBU"
+	
+#	while read LINE;
+#	do
+#		echo "$LINE";
+#	done < "$ACEPDIR_PATH$FILE"
+}
+
+#por ahora solo paso como parametro LINE. Los otros datos los uso "globales". 
+#si despues aparece la necesidad lo cambio
+processLine(){
+	LINEA=$1
+	
 }
 
 processAllFiles(){
-	FILES=`ls "$JOB_PATH$ACEPDIR"`
+	FILES=`ls "$ACEPDIR_PATH"`
 	for FILE_ITEM in $FILES;
 	do
 		processFile "$FILE_ITEM"
