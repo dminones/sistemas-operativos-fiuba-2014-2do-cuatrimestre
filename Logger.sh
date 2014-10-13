@@ -1,3 +1,13 @@
+######
+#params:
+
+#1)filename
+#2)where
+#3)code
+#4)description
+
+######
+
 #functions
 start_paths(){
 	JOB_PATH="../../Documents/facultad/sistemasOperativos/tp/"
@@ -6,14 +16,14 @@ start_paths(){
 
 count_lines(){
 	FILE=$1
-	LIMIT=10
-	LINES_TO_DELETE='1,5d'
-	LINES=`wc -l < $FILE`
-	if [ $LINES -ge $LIMIT ]; then
-		echo "tengo que borrar"
-		sed -i "$LINES_TO_DELETE" "$FILE"
+	if [ -f $FILE ]; then #se fija si existe el archivo de log
+		LIMIT=30
+		LINES_TO_DELETE='1,5d'
+		LINES=`wc -l < $FILE`
+		if [ $LINES -ge $LIMIT ]; then
+			sed -i "$LINES_TO_DELETE" "$FILE"
+		fi
 	fi
-	
 }
 
 log(){
