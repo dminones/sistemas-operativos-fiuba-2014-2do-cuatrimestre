@@ -1,0 +1,27 @@
+#!/bin/bash
+#Procesa los archivos
+. Helpers
+
+doCdosier() {
+  echo 'doCdosier'
+}
+
+doFsoldes() {
+  echo 'doFsoldes'
+}
+
+doProcessFile() {
+  file=$1
+  Log "Procesando $file file..."
+  # take action on each file. $f store current file name
+}
+
+NOVEDIR_FILES=$NOVEDIR/*
+
+for f in $NOVEDIR_FILES
+do
+  doProcessFile $f
+done
+
+doFsoldes
+doCdosier

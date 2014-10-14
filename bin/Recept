@@ -1,0 +1,16 @@
+#!/bin/bash
+# Recive los archivos, verifica si son correctos
+# y los mueve a la carpeta en la que seran procesadas
+. Helpers
+
+SLEEP_TIME=10
+nroCiclo=0
+
+$BINDIR/DoRecept
+while [[ true ]]; do
+	Log "Recept ciclo nro."$nroCiclo
+
+	$BINDIR/DoRecept
+	let nroCiclo++
+	sleep $SLEEP_TIME
+done
