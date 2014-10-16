@@ -8,10 +8,10 @@ LOGDIR=$BINDIR
 NOVEDIR=$BINDIR/../novedir
 ACEPDIR=$BINDIR/../acepdir
 
-INITLOG=$LOGDIR"/ReceiptInit.log"
+INITLOG=$LOGDIR"/ReceptInit.log"
 
-RECEIPT_PID_FILE=$PIDDIR"/RECEIPT_PID"
-RECEIPT_LOG=$LOGDIR"/Receipt.log"
+RECEPT_PID_FILE=$PIDDIR"/RECEIPT_PID"
+RECEPT_LOG=$LOGDIR"/Recept.log"
 
 getFileContent() {
 	if [ -f $1 ]; then
@@ -21,8 +21,8 @@ getFileContent() {
 	fi
 }
 
-ReceiptPid=$(getFileContent $RECEIPT_PID_FILE)
+receptPid=$(getFileContent $RECEPT_PID_FILE)
 
 Log(){
-	echo $1 > $RECEIPT_LOG
+	echo $1 > $RECEPT_LOG
 }

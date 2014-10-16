@@ -3,11 +3,11 @@
 . Helpers
 
 doCdosier() {
-  echo 'doCdosier'
+  Log 'doCdosier'
 }
 
 doFsoldes() {
-  echo 'doFsoldes'
+  Log 'doFsoldes'
 }
 
 doProcessFile() {

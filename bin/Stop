@@ -2,13 +2,13 @@
 # Verifica si está corriendo Receipt y lo para si está corriendo
 . Helpers
 
-if [ $ReceiptPid == 0 ]; then
-    echo "Receipt no está ejecutandose"
+if [ $receptPid == 0 ]; then
+    echo "Recept no está ejecutandose"
 else
-	echo -n "Deteniendo Receipt...    "
-	Result=$(kill -9 $ReceiptPid)
-	if [[ ! $Result ]]; then
-		rm $RECEIPT_PID_FILE > /dev/null
+	echo -n "Deteniendo Recept...    "
+	Result=$(kill -9 $receptPid)
+	if [ !$Result ]; then
+		rm $RECEPT_PID_FILE > /dev/null
 		echo "[OK]"
-	fi	
+	fi
 fi
