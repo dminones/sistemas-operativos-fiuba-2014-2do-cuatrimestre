@@ -1,0 +1,14 @@
+#!/bin/bash
+# Verifica si está corriendo Receipt y lo para si está corriendo
+. Helpers
+
+if [ $receptPid == 0 ]; then
+    echo "Recept no está ejecutandose"
+else
+	echo -n "Deteniendo Recept...    "
+	Result=$(kill -9 $receptPid)
+	if [ !$Result ]; then
+		rm $RECEPT_PID_FILE > /dev/null
+		echo "[OK]"
+	fi
+fi

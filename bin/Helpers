@@ -1,0 +1,28 @@
+#!/bin/bash
+pushd `dirname $0` > /dev/null
+BINDIR=`pwd`
+popd > /dev/null
+
+PIDDIR=$BINDIR
+LOGDIR=$BINDIR
+NOVEDIR=$BINDIR/../novedir
+ACEPDIR=$BINDIR/../acepdir
+
+INITLOG=$LOGDIR"/ReceptInit.log"
+
+RECEPT_PID_FILE=$PIDDIR"/RECEIPT_PID"
+RECEPT_LOG=$LOGDIR"/Recept.log"
+
+getFileContent() {
+	if [ -f $1 ]; then
+	  	echo $(<"$1")
+	else
+		echo 0
+	fi
+}
+
+receptPid=$(getFileContent $RECEPT_PID_FILE)
+
+Log(){
+	echo $1 > $RECEPT_LOG
+}

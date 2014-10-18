@@ -1,0 +1,25 @@
+#!/bin/bash
+# Debut: verifica si está corriendo Receipt y lo ejecuta si no está corriendo
+. Helpers
+
+if [ -f $INITLOG ]; then
+    rm $INITLOG
+fi
+
+if [ $receptPid == 0 ]; then
+    echo -n "Iniciando Recept...   "
+
+    $BINDIR/Recept >$INITLOG 2>&1 < /dev/null &
+    myPid=$!
+
+    error=$(cat $INITLOG)
+    if [ -s $INITLOG ]; then
+        Log "No pudo iniciarse Recept: "$error
+    else
+        echo $myPid > $RECEPT_PID_FILE
+        echo "[OK]"
+    fi
+
+else
+	echo "Recept corriendo bajo el no.: "$receptPid
+fi
