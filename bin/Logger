@@ -11,8 +11,8 @@
 count_lines(){
 	typeset FILE=$1
 	if [ -f $FILE ]; then #se fija si existe el archivo de log
-		typeset LIMIT=7
-		typeset LINES_TO_DELETE='1,7d'
+		typeset LIMIT=300
+		typeset LINES_TO_DELETE='1,100d'
 		typeset LINES=`wc -l < $FILE`
 		if [ $LINES -ge $LIMIT ]; then
 			sed -i "$LINES_TO_DELETE" "$FILE"

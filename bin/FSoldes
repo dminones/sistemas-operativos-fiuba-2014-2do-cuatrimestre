@@ -12,6 +12,7 @@
 
 #imports
 . Logger
+. CsvParser
 
 #functions
 start_paths(){
@@ -35,27 +36,16 @@ format_bank(){
 	CODIGO_ENTIDAD=`getCsvFieldNumber "$LINEA" 2`
 	UBIC_CBU=`getCsvFieldNumber "$LINEA" 4`
 	UBIC_SALDO=`getCsvFieldNumber "$LINEA" 5`
-}
-
-#$1:linea, $2:numero de campo
-getCsvFieldNumber(){
-	typeset FIELD_BLOCK='\([^;]*;\)'
-	typeset REPEAT=`expr $2 - 1`
-	echo $1 | sed "s/^$FIELD_BLOCK\{$REPEAT\}\([^;]*\).*/\2/"
-}
-
-#$1:linea
-getLastCsvField(){
-	echo $1 | sed 's/^.*;//'
+	FORMAT_CBU=`sanitizeNumber $FORMAT_CBU`
 }
 
 processFile(){
-	FILE=$1	
+	typeset FILE=$1	
 	myLog 'processFile' 'info' "Archivo a procesar:$FILE"
-	BANCO=`echo $FILE | sed 's/_.*$//'`
-	FECHA=`echo $FILE | sed 's/^.*_//'`
+	typeset BANCO=`echo $FILE | sed 's/_.*$//'`
+	typeset FECHA=`echo $FILE | sed 's/^.*_//'`
 	format_bank "$BANCO"
-#	echo "banco:$BANCO,entidad:$CODIGO_ENTIDAD, ubic_cbu:$UBIC_CBU, ubic_saldo:$UBIC_SALDO, format_cbu:$FORMAT_CBU"
+#	echo "banco:$BANCO,entidad:$CODIGO_ENTIDAD, ubic_cbu:$UBIC_CBU, ubic_saldo:$UBIC_SALDO, format_cbu:$FORMAT_CBU, fin"
 	
 	while read LINE;
 	do
@@ -70,32 +60,41 @@ processLine(){
 	typeset SALDO=`getCsvFieldNumber "$LINEA" "$UBIC_SALDO"`
 
 	typeset ROW="$FILE;$CODIGO_ENTIDAD;$SALDO"
-	getCBU "$LINEA" "$UBIC_CBU" "$FORMAT_CBU"
-	echo "$ROW" >> "$SALDOS_DIR$SALDOS_LIS_FILE"
+	typeset CBU=`getCBU "$LINEA" "$UBIC_CBU" "$FORMAT_CBU"`
+	echo "cbu quedo: $CBU"
+#	echo "$ROW" >> "$SALDOS_DIR$SALDOS_LIS_FILE"
+}
+
+sanitizeNumber(){
+	echo $1 | sed 's/[^0-9]*//g'
 }
 
 #$1:linea,$2:ubic_cbu,$3:formato_cbu
 getCBU(){
+	typeset LINEA=$1
 	typeset FORMAT=$3
-	echo "formato cbu: $FORMAT"
-
-#	if [ $FORMAT -le 2 ]; then
-#		echo "es menor o igual"
-#	else
-#		echo "es mayor"
+	typeset FIRST_FIELD=$2
+	typeset CBU=""
+	
+#	if [ $3 -lt 2 ]; then
+#		echo "$3 es menor que 2"
+#	else 
+#		echo "$3 es mayor o igual que 2"
 #	fi
 	
-
-#	typeset i=0
-#	while [ $i -le $FORMAT ]
-#	do
-#		echo "$i"
-#		i=`expr $i + 1`
-#	done
+	typeset i=0
+	while [ $i -lt $FORMAT ]
+	do
+		typeset FIELD_NUMBER=`expr $FIRST_FIELD + $i`
+		typeset VALUE=`getCsvFieldNumber "$LINEA" "$FIELD_NUMBER"`
+		CBU="$CBU$VALUE"
+		i=`expr $i + 1`
+	done
+	echo "$CBU"
 }
 
 processAllFiles(){
-	FILES=`ls "$ACEPDIR_PATH"`
+	typeset FILES=`ls "$ACEPDIR_PATH"`
 #	savePrevious	
 	for FILE_ITEM in $FILES;
 	do
@@ -111,12 +110,10 @@ myLog(){
 	typeset WHERE=$1
 	typeset CODE=$2
 	typeset DESCRIPTION=$3
-#	echo "$LOG_FILE - $WHERE - $CODE - $DESCRIPTION"
 	log "$LOG_FILE" "$WHERE" "$CODE" "$DESCRIPTION"
-#	./Logger.sh "$LOG_FILE" "$WHERE" "$CODE" "$DESCRIPTION"
 }
 
 # codigo de ejecucion
 start_paths
 myLog 'fsoldes' 'info' 'Inicio de FSoldes'
-#processAllFiles
+processAllFiles
