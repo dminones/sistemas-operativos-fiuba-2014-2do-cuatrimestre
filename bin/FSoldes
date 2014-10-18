@@ -61,12 +61,28 @@ processLine(){
 
 	typeset ROW="$FILE;$CODIGO_ENTIDAD;$SALDO"
 	typeset CBU=`getCBU "$LINEA" "$UBIC_CBU" "$FORMAT_CBU"`
-	echo "cbu quedo: $CBU"
-#	echo "$ROW" >> "$SALDOS_DIR$SALDOS_LIS_FILE"
+	
+	if [ `isValidCbu "$CBU"` -eq 1 ]; then
+		echo "es valido"
+	else
+		myLog 'processLine' 'info' "Error en CBU. Registro original $LINEA"
+		myLog 'processLine' 'info' 'Se rechaza el registro'
+	fi
+	
 }
 
 sanitizeNumber(){
 	echo $1 | sed 's/[^0-9]*//g'
+}
+
+isValidCbu(){
+	typeset IS_VALID=$(echo "$1" | grep '^\([0-9]\)\{22\}$')
+	
+	if [ "$IS_VALID" != "" ];then
+		echo 1
+	else
+		echo 0
+	fi
 }
 
 #$1:linea,$2:ubic_cbu,$3:formato_cbu
@@ -76,12 +92,6 @@ getCBU(){
 	typeset FIRST_FIELD=$2
 	typeset CBU=""
 	
-#	if [ $3 -lt 2 ]; then
-#		echo "$3 es menor que 2"
-#	else 
-#		echo "$3 es mayor o igual que 2"
-#	fi
-	
 	typeset i=0
 	while [ $i -lt $FORMAT ]
 	do
@@ -90,7 +100,7 @@ getCBU(){
 		CBU="$CBU$VALUE"
 		i=`expr $i + 1`
 	done
-	echo "$CBU"
+	echo -n "$CBU"
 }
 
 processAllFiles(){
