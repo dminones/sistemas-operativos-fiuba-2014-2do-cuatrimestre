@@ -10,16 +10,18 @@
 
 #######
 
+#imports
+. Logger
 
 #functions
 start_paths(){
-	JOB_PATH="../../Documents/facultad/sistemasOperativos/tp/"
+	JOB_PATH="../../../Documents/facultad/sistemasOperativos/tp/"
 	MAEDIR="maedir/"
 	MAEDIR_PATH="$JOB_PATH$MAEDIR"
 	ACEPDIR="acepdir/"
 	BANCOS="bancos.dat"
 	BANCOS_FILE="$JOB_PATH$MAEDIR$BANCOS"
-	LOG_FILE="logdir/FSoldes"
+	LOG_FILE="FSoldes"
 	ACEPDIR_PATH="$JOB_PATH$ACEPDIR"
 	SALDOS_LIS_FILE="saldos.lis"
 	SALDOS_DIR="$MAEDIR_PATH""saldos/"
@@ -49,7 +51,7 @@ getLastCsvField(){
 
 processFile(){
 	FILE=$1	
-	log 'processFile' 'info' "Archivo a procesar:$FILE"
+	myLog 'processFile' 'info' "Archivo a procesar:$FILE"
 	BANCO=`echo $FILE | sed 's/_.*$//'`
 	FECHA=`echo $FILE | sed 's/^.*_//'`
 	format_bank "$BANCO"
@@ -77,11 +79,11 @@ getCBU(){
 	typeset FORMAT=$3
 	echo "formato cbu: $FORMAT"
 
-	if [ $FORMAT -le 2 ]; then
-		echo "es menor o igual"
-	else
-		echo "es mayor"
-	fi
+#	if [ $FORMAT -le 2 ]; then
+#		echo "es menor o igual"
+#	else
+#		echo "es mayor"
+#	fi
 	
 
 #	typeset i=0
@@ -105,14 +107,16 @@ processAllFiles(){
 #	./mover.sh "$SALDOS_DIR$SALDOS_LIS_FILE" "$SALDOS_DIR$ANT_DIR"
 #}
 
-log(){
-	WHERE=$1
-	CODE=$2
-	DESCRIPTION=$3
-	./Logger.sh "$LOG_FILE" "$WHERE" "$CODE" "$DESCRIPTION"
+myLog(){
+	typeset WHERE=$1
+	typeset CODE=$2
+	typeset DESCRIPTION=$3
+#	echo "$LOG_FILE - $WHERE - $CODE - $DESCRIPTION"
+	log "$LOG_FILE" "$WHERE" "$CODE" "$DESCRIPTION"
+#	./Logger.sh "$LOG_FILE" "$WHERE" "$CODE" "$DESCRIPTION"
 }
 
 # codigo de ejecucion
 start_paths
-log 'fsoldes' 'info' 'Inicio de FSoldes'
-processAllFiles
+myLog 'fsoldes' 'info' 'Inicio de FSoldes'
+#processAllFiles

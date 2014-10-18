@@ -1,3 +1,7 @@
-./Logger.sh conf/Deployer deploy err "archivo duplicado"
-./Logger.sh conf/Deployer deploy war "esto es un warning"
-./Logger.sh conf/Deployer deploy inf "esto es una info"
+#./Logger.sh conf/Deployer deploy err "archivo duplicado"
+#./Logger.sh conf/Deployer deploy war "esto es un warning"
+#./Logger.sh conf/Deployer deploy inf "esto es una info"
+
+. Logger.sh
+log conf/Deployer deploy err "archivo lalal"
+

@@ -1,0 +1,39 @@
+######
+#params:
+
+#1)filename
+#2)where
+#3)code
+#4)description
+
+######
+
+count_lines(){
+	typeset FILE=$1
+	if [ -f $FILE ]; then #se fija si existe el archivo de log
+		typeset LIMIT=7
+		typeset LINES_TO_DELETE='1,7d'
+		typeset LINES=`wc -l < $FILE`
+		if [ $LINES -ge $LIMIT ]; then
+			sed -i "$LINES_TO_DELETE" "$FILE"
+		fi
+	fi
+}
+
+log(){
+	typeset	JOB_PATH="../../../Documents/facultad/sistemasOperativos/tp/"
+	typeset LOG_DIR="logdir/"
+	typeset EXTENSION=".log"
+
+	typeset FILE=$1
+	typeset FILE_PATH="$JOB_PATH$LOG_DIR$FILE$EXTENSION"
+	count_lines "$FILE_PATH"
+	
+	typeset WHERE=$2
+	typeset DATETIME=`date +'%Y/%m/%d %T'`
+	typeset CODE=$3
+	typeset DESCRIPTION=$4
+	typeset MESSAGE="$DATETIME - $USER - $WHERE - $CODE - $DESCRIPTION"
+	echo "$MESSAGE" >> "$FILE_PATH"
+}
+
