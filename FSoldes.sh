@@ -23,6 +23,7 @@ start_paths(){
 	ACEPDIR_PATH="$JOB_PATH$ACEPDIR"
 	SALDOS_LIS_FILE="saldos.lis"
 	SALDOS_DIR="$MAEDIR_PATH""saldos/"
+	ANT_DIR="ant/"
 }
 
 format_bank(){
@@ -52,11 +53,10 @@ processFile(){
 	BANCO=`echo $FILE | sed 's/_.*$//'`
 	FECHA=`echo $FILE | sed 's/^.*_//'`
 	format_bank "$BANCO"
-	echo "banco:$BANCO,entidad:$CODIGO_ENTIDAD, ubic_cbu:$UBIC_CBU, ubic_saldo:$UBIC_SALDO, format_cbu:$FORMAT_CBU"
+#	echo "banco:$BANCO,entidad:$CODIGO_ENTIDAD, ubic_cbu:$UBIC_CBU, ubic_saldo:$UBIC_SALDO, format_cbu:$FORMAT_CBU"
 	
 	while read LINE;
 	do
-#		echo "$LINE";
 		processLine "$LINE";
 	done < "$ACEPDIR_PATH$FILE"
 }
@@ -64,17 +64,46 @@ processFile(){
 #por ahora solo paso como parametro LINE. Los otros datos los uso "globales". 
 #si despues aparece la necesidad lo cambio
 processLine(){
-	LINEA=$1
-	echo "$FILE" >> "$SALDOS_DIR$SALDOS_LIS_FILE"
+	typeset LINEA=$1
+	typeset SALDO=`getCsvFieldNumber "$LINEA" "$UBIC_SALDO"`
+
+	typeset ROW="$FILE;$CODIGO_ENTIDAD;$SALDO"
+	getCBU "$LINEA" "$UBIC_CBU" "$FORMAT_CBU"
+	echo "$ROW" >> "$SALDOS_DIR$SALDOS_LIS_FILE"
+}
+
+#$1:linea,$2:ubic_cbu,$3:formato_cbu
+getCBU(){
+	typeset FORMAT=$3
+	echo "formato cbu: $FORMAT"
+
+	if [ $FORMAT -le 2 ]; then
+		echo "es menor o igual"
+	else
+		echo "es mayor"
+	fi
+	
+
+#	typeset i=0
+#	while [ $i -le $FORMAT ]
+#	do
+#		echo "$i"
+#		i=`expr $i + 1`
+#	done
 }
 
 processAllFiles(){
 	FILES=`ls "$ACEPDIR_PATH"`
+#	savePrevious	
 	for FILE_ITEM in $FILES;
 	do
 		processFile "$FILE_ITEM"
 	done
 }
+
+#savePrevious(){
+#	./mover.sh "$SALDOS_DIR$SALDOS_LIS_FILE" "$SALDOS_DIR$ANT_DIR"
+#}
 
 log(){
 	WHERE=$1
