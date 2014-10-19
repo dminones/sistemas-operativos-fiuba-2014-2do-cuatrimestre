@@ -1,3 +1,4 @@
+#!/bin/bash
 #######
 #formato bancos.dat:
 
@@ -15,10 +16,13 @@
 . CsvParser
 
 #constants
-readonly ACTION_ALTA=1
-readonly ACTION_REEMPLAZO=2
-readonly ACTION_ANTERIOR=3
-readonly ACTION_DUPLICADO=4
+readonly K_ACTION_ALTA=1
+readonly K_ACTION_REEMPLAZO=2
+readonly K_ACTION_ANTERIOR=3
+readonly K_ACTION_DUPLICADO=4
+
+readonly K_REC_REJECTED=0
+readonly K_REC_ACCEPTED=1
 
 #functions
 start_paths(){
@@ -30,11 +34,12 @@ start_paths(){
 	BANCOS_FILE="$JOB_PATH$MAEDIR$BANCOS"
 	LOG_FILE="FSoldes"
 	ACEPDIR_PATH="$JOB_PATH$ACEPDIR"
-	SALDOS_LIS_FILE="saldos.lis"
+	typeset SALDOS_LIS_FILE="saldos.lis"
 	typeset SALDOS_TAB_FILE="saldos.tab"
 	SALDOS_DIR="$MAEDIR_PATH""saldos/"
 	ANT_DIR="ant/"
 	SALDOS_TAB_FILE_PATH="$SALDOS_DIR$SALDOS_TAB_FILE"
+	SALDOS_LIS_FILE_PATH="$SALDOS_DIR$SALDOS_LIS_FILE"
 }
 
 format_bank(){
@@ -49,27 +54,60 @@ format_bank(){
 
 processFile(){
 	typeset FILE=$1	
+	echo "archivo a procesar: $ACEPDIR_PATH$FILE"
 	myLog 'processFile' 'info' "Archivo a procesar:$FILE"
 	typeset BANCO=`echo $FILE | sed 's/_.*$//'`
 	typeset FECHA=`echo $FILE | sed 's/^.*_//'`
+	
 	format_bank "$BANCO"
 #	echo "banco:$BANCO,entidad:$CODIGO_ENTIDAD, ubic_cbu:$UBIC_CBU, ubic_saldo:$UBIC_SALDO, format_cbu:$FORMAT_CBU, fin"
 
-	typeset ACTION=$(curseOfAction "$CODIGO_ENTIDAD" "$FECHA")
-#	echo "action: $ACTION"
-	if [ $ACTION -eq $ACTION_ALTA ] || [ $ACTION -eq $ACTION_REEMPLAZO ]; then
-		echo "es alta o reemplazo"
-	else
-		echo "es duplicado o anterior"
-	fi
+	VOY POR ACAAAAAAAAAA
 
-#comentado para ejecutar mas rapido otra cosa	
-#	while read LINE;
-#	do
-#		processLine "$LINE";
-#	done < "$ACEPDIR_PATH$FILE"
+	typeset ACTION=$(curseOfAction "$CODIGO_ENTIDAD" "$FECHA")
+	if [ $ACTION -eq $K_ACTION_ALTA ] || [ $ACTION -eq $K_ACTION_REEMPLAZO ]; then
+		echo "es alta o reemplazo"
+		processValidFile
+	else
+		echo "es duplicado o anterior: $ACTION"
+	fi
+}
+
+#$1:action,$2:file,$3:banco,$4:fecha
+processValidFile(){
+	backupSaldosTab
 	
-#	updateSaldosTab "$BANCO" "$CODIGO_ENTIDAD" "$FECHA"
+	typeset DELETED_RECORDS=0
+	if [ $ACTION -eq $K_ACTION_REEMPLAZO ]; then
+		typeset DELETE_PATTERN="^[^;]*;$CODIGO_ENTIDAD;[^;]*;[^;]*$"
+		DELETED_RECORDS=$(grep -c "$DELETE_PATTERN" "$SALDOS_LIS_FILE_PATH")
+		if [ $DELETED_RECORDS -gt 0 ]; then
+			sed -i "/$DELETE_PATTERN/d" "$SALDOS_LIS_FILE_PATH"
+		fi
+	fi
+	
+	typeset READ_RECORDS=0
+	typeset ACCEPTED_RECORDS=0
+	typeset REJECTED_RECORDS=0
+	
+	while read LINE; do
+		READ_RECORDS=`expr $READ_RECORDS + 1`
+		typeset RESULT=$(processLine "$LINE")
+		if [ $RESULT -eq $K_REC_ACCEPTED ]; then
+			ACCEPTED_RECORDS=`expr $ACCEPTED_RECORDS + 1`
+		else
+			REJECTED_RECORDS=`expr $REJECTED_RECORDS + 1`
+		fi;
+	done < "$ACEPDIR_PATH$FILE"
+	
+	myLog 'processValidFile' 'info' "Registro eliminados: $DELETED_RECORDS"
+	myLog 'processValidFile' 'info' "Registro leidos: $READ_RECORDS"
+	myLog 'processValidFile' 'info' "Registro aceptados: $ACCEPTED_RECORDS"
+	myLog 'processValidFile' 'info' "Registro rechazados: $REJECTED_RECORDS"
+	
+	#mover archivo procesado
+	
+	updateSaldosTab "$BANCO" "$CODIGO_ENTIDAD" "$FECHA"
 }
 
 #$1:nombreEntidad,$2:codigoEntidad,$3:fechaSaldo
@@ -78,30 +116,40 @@ updateSaldosTab(){
 	echo "$ROW" >> "$SALDOS_TAB_FILE_PATH"
 }
 
+backupSaldosTab(){
+	echo "		"
+}
+
 #$1:codigoEntidad,$2:fechaSaldo
 curseOfAction(){
-	typeset RECORD=`grep "^[^;]*;$1;[^;]*$" "$SALDOS_TAB_FILE_PATH"`
-	
-	if [ "$RECORD" == "" ]; then
-		echo "$ACTION_ALTA"
-	else
-		typeset LAST_DATE_STRING=`getLastCsvField "$RECORD"`
-		LAST_DATE_STRING=`sanitizeNumber $LAST_DATE_STRING`
-		typeset LAST_DATE=$(date -d "$LAST_DATE_STRING" +"%Y%m%d")
-		typeset FILE_DATE=$(date -d "$2" +"%Y%m%d")
-		
-#		echo "FILE DATE: $FILE_DATE"
-#		echo "LAST DATE: $LAST_DATE"
-		
-		if [ $FILE_DATE -gt $LAST_DATE ];then
-			echo "$ACTION_REEMPLAZO"
-		elif [ $FILE_DATE -eq $LAST_DATE ];then
-			echo "$ACTION_DUPLICADO"
+	if [ -f $SALDOS_TAB_FILE_PATH ]; then
+		typeset RECORD=`grep "^[^;]*;$1;[^;]*$" "$SALDOS_TAB_FILE_PATH"`
+#		myLog 'fsoldes' 'info' 'CURSE OF ACTION'
+#		myLog 'fsoldes' 'info' "codigo entidad: $1"
+#		myLog 'fsoldes' 'info' "record: $RECORD"
+		if [ "$RECORD" == "" ]; then
+			echo "$K_ACTION_ALTA"
 		else
-			echo "$ACTION_ANTERIOR"
+			typeset LAST_DATE_STRING=`getLastCsvField "$RECORD"`
+			LAST_DATE_STRING=`sanitizeNumber $LAST_DATE_STRING`
+			typeset LAST_DATE=$(date -d "$LAST_DATE_STRING" +"%Y%m%d")
+			typeset FILE_DATE=$(date -d "$2" +"%Y%m%d")
+		
+#			myLog 'fsoldes' 'info' "LAST_DATE: $LAST_DATE"
+#			myLog 'fsoldes' 'info' "FILE_DATE: $FILE_DATE"
+		
+			if [ $FILE_DATE -gt $LAST_DATE ];then
+				echo "$K_ACTION_REEMPLAZO"
+			elif [ $FILE_DATE -eq $LAST_DATE ];then
+				echo "$K_ACTION_DUPLICADO"
+			else
+#				myLog 'fsoldes' 'info' "es anterior"
+				echo "$K_ACTION_ANTERIOR"
+			fi
 		fi
+	else
+		echo "$K_ACTION_ALTA"
 	fi
-
 }
 
 #por ahora solo paso como parametro LINE. Los otros datos los uso "globales". 
@@ -114,10 +162,12 @@ processLine(){
 	
 	if [ `isValidCbu "$CBU"` -eq 1 ]; then
 		typeset ROW="$FILE;$CODIGO_ENTIDAD;$CBU;$SALDO"
-		echo "$ROW" >> "$SALDOS_DIR$SALDOS_LIS_FILE"
+		echo "$ROW" >> "$SALDOS_LIS_FILE_PATH"
+		echo "$K_REC_ACCEPTED"
 	else
 		myLog 'processLine' 'info' "Error en CBU. Registro original $LINEA"
 		myLog 'processLine' 'info' 'Se rechaza el registro'
+		echo "$K_REC_REJECTED"
 	fi
 	
 }
@@ -156,7 +206,7 @@ getCBU(){
 }
 
 processAllFiles(){
-	typeset FILES=`ls "$ACEPDIR_PATH"`
+	typeset FILES=`ls -B "$ACEPDIR_PATH"` #ignora archivos con ~
 #	savePrevious	
 	for FILE_ITEM in $FILES;
 	do
@@ -165,7 +215,7 @@ processAllFiles(){
 }
 
 #savePrevious(){
-#	./mover.sh "$SALDOS_DIR$SALDOS_LIS_FILE" "$SALDOS_DIR$ANT_DIR"
+#	./mover.sh "$SALDOS_LIS_FILE_PATH" "$SALDOS_DIR$ANT_DIR"
 #}
 
 myLog(){
@@ -179,3 +229,4 @@ myLog(){
 start_paths
 myLog 'fsoldes' 'info' 'Inicio de FSoldes'
 processAllFiles
+myLog 'fsoldes' 'info' 'Fin de FSoldes'
