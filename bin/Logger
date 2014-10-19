@@ -1,3 +1,4 @@
+#!/bin/bash
 ######
 #params:
 
@@ -8,14 +9,16 @@
 
 ######
 
-count_lines(){
+reduceFileIfNeeded(){
 	typeset FILE=$1
 	if [ -f $FILE ]; then #se fija si existe el archivo de log
-		typeset LIMIT=300
-		typeset LINES_TO_DELETE='1,100d'
-		typeset LINES=`wc -l < $FILE`
-		if [ $LINES -ge $LIMIT ]; then
+		#size en bytes	
+		typeset SIZE_LIMIT=20000 
+		typeset LINES_TO_DELETE='1,300d'
+		typeset SIZE=`wc -c < $FILE`
+		if [ $SIZE -ge $SIZE_LIMIT ]; then
 			sed -i "$LINES_TO_DELETE" "$FILE"
+			SIZE=`wc -c < $FILE`
 		fi
 	fi
 }
@@ -27,7 +30,8 @@ log(){
 
 	typeset FILE=$1
 	typeset FILE_PATH="$JOB_PATH$LOG_DIR$FILE$EXTENSION"
-	count_lines "$FILE_PATH"
+
+	reduceFileIfNeeded "$FILE_PATH"
 	
 	typeset WHERE=$2
 	typeset DATETIME=`date +'%Y/%m/%d %T'`

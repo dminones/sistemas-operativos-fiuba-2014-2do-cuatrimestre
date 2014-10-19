@@ -62,7 +62,7 @@ processFile(){
 	format_bank "$BANCO"
 #	echo "banco:$BANCO,entidad:$CODIGO_ENTIDAD, ubic_cbu:$UBIC_CBU, ubic_saldo:$UBIC_SALDO, format_cbu:$FORMAT_CBU, fin"
 
-	VOY POR ACAAAAAAAAAA
+#	VOY POR ACAAAAAAAAAA
 
 	typeset ACTION=$(curseOfAction "$CODIGO_ENTIDAD" "$FECHA")
 	if [ $ACTION -eq $K_ACTION_ALTA ] || [ $ACTION -eq $K_ACTION_REEMPLAZO ]; then
