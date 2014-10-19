@@ -13,8 +13,8 @@ reduceFileIfNeeded(){
 	typeset FILE=$1
 	if [ -f $FILE ]; then #se fija si existe el archivo de log
 		#size en bytes	
-		typeset SIZE_LIMIT=20000 
-		typeset LINES_TO_DELETE='1,300d'
+		typeset SIZE_LIMIT=100000 
+		typeset LINES_TO_DELETE='1,250d'
 		typeset SIZE=`wc -c < $FILE`
 		if [ $SIZE -ge $SIZE_LIMIT ]; then
 			sed -i "$LINES_TO_DELETE" "$FILE"
@@ -25,11 +25,10 @@ reduceFileIfNeeded(){
 
 log(){
 	typeset	JOB_PATH="../../../Documents/facultad/sistemasOperativos/tp/"
-	typeset LOG_DIR="logdir/"
 	typeset EXTENSION=".log"
 
 	typeset FILE=$1
-	typeset FILE_PATH="$JOB_PATH$LOG_DIR$FILE$EXTENSION"
+	typeset FILE_PATH="$JOB_PATH$FILE$EXTENSION"
 
 	reduceFileIfNeeded "$FILE_PATH"
 	

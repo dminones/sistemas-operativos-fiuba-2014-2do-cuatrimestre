@@ -32,7 +32,9 @@ start_paths(){
 	ACEPDIR="acepdir/"
 	BANCOS="bancos.dat"
 	BANCOS_FILE="$JOB_PATH$MAEDIR$BANCOS"
-	LOG_FILE="FSoldes"
+	typeset LOG_DIR="logdir/"
+	typeset	LOG_FILE_NAME="FSoldes"
+	LOG_FILE="$LOG_DIR$LOG_FILE_NAME"
 	ACEPDIR_PATH="$JOB_PATH$ACEPDIR"
 	typeset SALDOS_LIS_FILE="saldos.lis"
 	typeset SALDOS_TAB_FILE="saldos.tab"
@@ -60,7 +62,6 @@ processFile(){
 	typeset FECHA=`echo $FILE | sed 's/^.*_//'`
 	
 	format_bank "$BANCO"
-#	echo "banco:$BANCO,entidad:$CODIGO_ENTIDAD, ubic_cbu:$UBIC_CBU, ubic_saldo:$UBIC_SALDO, format_cbu:$FORMAT_CBU, fin"
 
 #	VOY POR ACAAAAAAAAAA
 
