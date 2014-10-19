@@ -12,7 +12,7 @@ ejemplo:
 log "$LOG_FILE" "$WHERE" "$CODE" "$DESCRIPTION"
 
 params:
-1)filename: solo el nombre del archivo, sin ruta ni extension (FSoldes, Deployer, etc)
+1)filename: ruta con la carpeta a partir de $grupo/ y sin la extension (ej: logdir/FSoldes, conf/Deployer)
 2)where
 3)code
 4)description
