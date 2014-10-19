@@ -14,6 +14,12 @@
 . Logger
 . CsvParser
 
+#constants
+readonly ACTION_ALTA=1
+readonly ACTION_REEMPLAZO=2
+readonly ACTION_ANTERIOR=3
+readonly ACTION_DUPLICADO=4
+
 #functions
 start_paths(){
 	JOB_PATH="../../../Documents/facultad/sistemasOperativos/tp/"
@@ -25,8 +31,10 @@ start_paths(){
 	LOG_FILE="FSoldes"
 	ACEPDIR_PATH="$JOB_PATH$ACEPDIR"
 	SALDOS_LIS_FILE="saldos.lis"
+	typeset SALDOS_TAB_FILE="saldos.tab"
 	SALDOS_DIR="$MAEDIR_PATH""saldos/"
 	ANT_DIR="ant/"
+	SALDOS_TAB_FILE_PATH="$SALDOS_DIR$SALDOS_TAB_FILE"
 }
 
 format_bank(){
@@ -46,11 +54,54 @@ processFile(){
 	typeset FECHA=`echo $FILE | sed 's/^.*_//'`
 	format_bank "$BANCO"
 #	echo "banco:$BANCO,entidad:$CODIGO_ENTIDAD, ubic_cbu:$UBIC_CBU, ubic_saldo:$UBIC_SALDO, format_cbu:$FORMAT_CBU, fin"
+
+	typeset ACTION=$(curseOfAction "$CODIGO_ENTIDAD" "$FECHA")
+#	echo "action: $ACTION"
+	if [ $ACTION -eq $ACTION_ALTA ] || [ $ACTION -eq $ACTION_REEMPLAZO ]; then
+		echo "es alta o reemplazo"
+	else
+		echo "es duplicado o anterior"
+	fi
+
+#comentado para ejecutar mas rapido otra cosa	
+#	while read LINE;
+#	do
+#		processLine "$LINE";
+#	done < "$ACEPDIR_PATH$FILE"
 	
-	while read LINE;
-	do
-		processLine "$LINE";
-	done < "$ACEPDIR_PATH$FILE"
+#	updateSaldosTab "$BANCO" "$CODIGO_ENTIDAD" "$FECHA"
+}
+
+#$1:nombreEntidad,$2:codigoEntidad,$3:fechaSaldo
+updateSaldosTab(){
+	typeset ROW="$1;$2;$3"
+	echo "$ROW" >> "$SALDOS_TAB_FILE_PATH"
+}
+
+#$1:codigoEntidad,$2:fechaSaldo
+curseOfAction(){
+	typeset RECORD=`grep "^[^;]*;$1;[^;]*$" "$SALDOS_TAB_FILE_PATH"`
+	
+	if [ "$RECORD" == "" ]; then
+		echo "$ACTION_ALTA"
+	else
+		typeset LAST_DATE_STRING=`getLastCsvField "$RECORD"`
+		LAST_DATE_STRING=`sanitizeNumber $LAST_DATE_STRING`
+		typeset LAST_DATE=$(date -d "$LAST_DATE_STRING" +"%Y%m%d")
+		typeset FILE_DATE=$(date -d "$2" +"%Y%m%d")
+		
+#		echo "FILE DATE: $FILE_DATE"
+#		echo "LAST DATE: $LAST_DATE"
+		
+		if [ $FILE_DATE -gt $LAST_DATE ];then
+			echo "$ACTION_REEMPLAZO"
+		elif [ $FILE_DATE -eq $LAST_DATE ];then
+			echo "$ACTION_DUPLICADO"
+		else
+			echo "$ACTION_ANTERIOR"
+		fi
+	fi
+
 }
 
 #por ahora solo paso como parametro LINE. Los otros datos los uso "globales". 
@@ -59,17 +110,18 @@ processLine(){
 	typeset LINEA=$1
 	typeset SALDO=`getCsvFieldNumber "$LINEA" "$UBIC_SALDO"`
 
-	typeset ROW="$FILE;$CODIGO_ENTIDAD;$SALDO"
 	typeset CBU=`getCBU "$LINEA" "$UBIC_CBU" "$FORMAT_CBU"`
 	
 	if [ `isValidCbu "$CBU"` -eq 1 ]; then
-		echo "es valido"
+		typeset ROW="$FILE;$CODIGO_ENTIDAD;$CBU;$SALDO"
+		echo "$ROW" >> "$SALDOS_DIR$SALDOS_LIS_FILE"
 	else
 		myLog 'processLine' 'info' "Error en CBU. Registro original $LINEA"
 		myLog 'processLine' 'info' 'Se rechaza el registro'
 	fi
 	
 }
+
 
 sanitizeNumber(){
 	echo $1 | sed 's/[^0-9]*//g'
