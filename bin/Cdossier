@@ -1,0 +1,128 @@
+#!/bin/bash
+
+#Variables
+ACEPDIR="../ok"
+MAEDIR="../data"
+REPODIR="../demande"
+LOGDIR="../log"
+RECHDIR="../nok"
+LOG_FILE="../log/Cdossier"
+WHERE="Cdossier"
+
+#Import
+. Logger
+. CsvParser
+
+initLog(){
+log "$LOG_FILE" "$WHERE" "INFO" "Inicio de Cdossier"
+log "$LOG_FILE" "$WHERE" "INFO" "Archivos de expedientes aceptados:"
+for FILE in `ls $ACEPDIR` 
+do
+	if [ -f $ACEPDIR/$FILE ] 
+	then
+		log "$LOG_FILE" "$WHERE" "INFO" "$FILE"
+	fi
+done
+}
+
+closeLog(){
+log "$LOG_FILE" "$WHERE" "INFO" "Fin de Cdossier"
+}
+
+processAllFiles(){
+	for FILE in `ls $ACEPDIR`;
+	do
+		if [ -f $ACEPDIR/$FILE ] 
+		then	
+			log "$LOG_FILE" "$WHERE" "INFO" "Archivo a procesar: $FILE"
+			if [ -f $ACEPDIR/proc/$FILE ]
+			then
+				mv $ACEPDIR/$FILE $RECHDIR
+				log "$LOG_FILE" "$WHERE" "WAR" "Archivo duplicado. Se rechaza el archivo." 
+			else
+				processFile "$FILE"
+			fi
+		fi
+	done
+}
+
+processFile(){
+		
+CAMPO2=`echo $1 | sed 's/@.*//'` #CAMARA
+CAMPO3=`echo $1 | sed 's/[^@]*@\([^@]*\).*/\1/'` #TRIBUNAL
+
+	while read LINE;
+	do
+		processLine "$LINE";
+	done < "$ACEPDIR/$1"
+
+}
+
+getSaldo(){ 
+
+DATA=""
+if [ ${#1} -eq 22 ] 
+then
+	DATA=`grep '^[^;]*;[^;]*;'$1'.*' $MAEDIR/saldos/saldos.lis`
+	if [ "$DATA" != "" ] 
+	then
+		SALDO=`getCsvFieldNumber "$DATA" 4`
+		echo $SALDO
+	fi
+fi
+}
+
+processLine(){
+
+CAMPO1=`getCsvFieldNumber "$1" 1` #EXPEDIENTE
+CAMPO4=`getCsvFieldNumber "$1" 2` #CARATULA
+CAMPO5=`getCsvFieldNumber "$1" 3` #ESTADO INFORMATIVO
+CAMPO6=`getCsvFieldNumber "$1" 4 | sed 's/\r//g'` #CBU	
+CAMPO7=""
+CAMPO8=""
+if [ "$CAMPO5" = "CUMPLIMIENTO" ] 
+then
+	CAMPO8="PEDIDO URGENTE PARA LIBERAR CUENTA"
+fi
+if [ "$CAMPO6" = "" ]
+then
+	if [ "$CAMPO5" = "SIN CUENTA ASOCIADA" ]
+	then
+		CAMPO8="PEDIDO ESTANDAR DE ASIGNACION DE CUENTA"
+	fi
+
+	if [ "$CAMPO5" = "EN GESTION" ] || [ "$CAMPO5" = "REMITIDO" ]
+	then
+		CAMPO8="ESPERAR 48 HORAS PARA RECLAMAR ASIGNACION DE CUENTA"
+	fi
+
+	if [ "$CAMPO5" = "A DESPACHO" ] || [ "$CAMPO5" = "EN CASILLERO" ]
+	then
+		CAMPO8="ESPERAR 96 HORAS PARA RECLAMAR ASIGNACION DE CUENTA"
+	fi
+else
+	if [ "$CAMPO5" != "CUMPLIMIENTO" ] 
+	then
+		if [ ${#CAMPO6} -ne 22 ] 
+		then
+			CAMPO8="PEDIDO URGENTE ASIGNAR NUEVA CBU POR CBU INCORRECTA"
+		else
+			CAMPO7=`getSaldo "$CAMPO6"`
+			if [ "$CAMPO7" != "" ] 
+			then
+				CAMPO8="PEDIDO URGENTE EMBARGAR CON CBU INFORMADA"
+			else
+				CAMPO8="ESPERAR 48 HORAS PARA HACER RECLAMO CON CBU INFORMADA"
+			fi
+		fi
+	fi
+fi
+	
+echo $CAMPO1";"$CAMPO2";"$CAMPO3";"$CAMPO4";"$CAMPO5";"$CAMPO6";"$CAMPO7";"$CAMPO8>> $REPODIR/exp_output
+
+}
+
+initLog
+processAllFiles
+closeLog
+
