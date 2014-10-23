@@ -40,7 +40,14 @@ processAllFiles(){
 				mv $ACEPDIR/$FILE $RECHDIR
 				log "$LOG_FILE" "$WHERE" "WAR" "Archivo duplicado. Se rechaza el archivo." 
 			else
-				processFile "$FILE"
+				CHECK=`grep -v '^[^;]*;[^;]*;[^;]*;.*' $ACEPDIR/$FILE`
+				if [ "$CHECK" != "" ] 
+				then
+					mv $ACEPDIR/$FILE $RECHDIR
+					log "$LOG_FILE" "$WHERE" "WAR" "Archivo con formato erroneo. Se rechaza el archivo." 
+				else
+					processFile "$FILE"
+				fi
 			fi
 		fi
 	done
