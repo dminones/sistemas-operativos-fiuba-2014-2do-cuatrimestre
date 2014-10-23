@@ -11,12 +11,12 @@ echo_y_log()
 	WHAT=$1
 	WHY=$2
 	echo $WHY
-	log $WHERE $WHAT $WHY
+	log $WHERE $WHAT "$WHY"
 }
 
 log()
 {
-	echo Log: $1 $2 $3
+	echo Log: $1 $2 "$3"
 	# bash log.sh $1 $2 $3
 }
 
@@ -60,8 +60,7 @@ leer_o_default()
 {
 	DEFAULT=$1
 	read LEIDO
-	log $WHERE INFO $LEIDO
-	if [ $LEIDO != \n ]
+	if [ "$LEIDO" ]
 	then
 		echo $LEIDO
 	else
@@ -85,9 +84,6 @@ RECHDIR=$GRUPO/nok
 LOGDIR=$GRUPO/log
 DUPDIR=$GRUPO/dup
 
-Hola=es
-preguntar Hola Estas?
-echo Variable: $Hola
 echo_y_log INFO "Inicio de Ejecucion de Deployer"
 echo_y_log INFO "Log de la instalacion: $CONFDIR/Deployer.log"
 echo_y_log INFO "Directorio predefinido de Configuración: $CONFDIR"
@@ -96,6 +92,44 @@ then
 	echo 1 Nothing for now...
 else
 	# chekear_terminos
+	TERMINOS_ACEPTADOS=2
+	while [[ $TERMINOS_ACEPTADOS -eq 2 ]]
+	do
+		echo_y_log INFO "Aceptas Terminos? (SI - NO)"
+		TERMINOS_LEIDOS=$(leer_o_default "a")
+		if [[ $TERMINOS_LEIDOS = "SI" ]]
+		then
+			TERMINOS_ACEPTADOS=$TRUE
+		else
+			if [[ $TERMINOS_LEIDOS = "NO" ]]
+			then
+				TERMINOS_ACEPTADOS=$FALSE
+			else
+				echo_y_log ERR "Respuesta Incorrecta. Escriba SI o NO."
+			fi
+		fi
+	done
+	if [ $TERMINOS_ACEPTADOS -eq $TRUE ]
+	then
 	# chekear_perl
-	preguntar_variables
+	PERL_EXISTE=$(which perl | grep -c ".*")
+	PERL_VERSION=$FALSE
+	if [ $TRUE -eq $PERL_EXISTE ]
+	then
+		PERL_VERSION=$(perl -v | grep -o "v[0-9][0-9\.]*" | sed "s/v\([0-9]*\)[0-9\.]*/\1/g")
+		if [ $PERL_VERSION -lt 5 ]
+		then
+			PERL_EXISTE=$FALSE
+		fi
+	fi
+	if [ $TRUE -eq $PERL_EXISTE ]
+	then
+		echo "Perl version: $(perl -v)"
+		preguntar_variables
+	else
+		echo_y_log ERR "NO PERL ERROR!!"
+	fi
+	else
+		echo_y_log ERR "NO TERMINOS!"
+	fi
 fi
