@@ -36,6 +36,8 @@ start_paths(){
 	typeset	LOG_FILE_NAME="FSoldes"
 	LOG_FILE="$LOG_DIR$LOG_FILE_NAME"
 	ACEPDIR_PATH="$JOB_PATH$ACEPDIR"
+	PROCDIR="$ACEPDIR_PATH""proc/"
+	RECHDIR="$JOB_PATH""rech/"
 	typeset SALDOS_LIS_FILE="saldos.lis"
 	typeset SALDOS_TAB_FILE="saldos.tab"
 	SALDOS_DIR="$MAEDIR_PATH""saldos/"
@@ -54,6 +56,7 @@ format_bank(){
 	FORMAT_CBU=`sanitizeNumber $FORMAT_CBU`
 }
 
+#$1:file
 processFile(){
 	typeset FILE=$1	
 	echo "archivo a procesar: $ACEPDIR_PATH$FILE"
@@ -63,22 +66,30 @@ processFile(){
 	
 	format_bank "$BANCO"
 
-#	VOY POR ACAAAAAAAAAA
-
 	typeset ACTION=$(curseOfAction "$CODIGO_ENTIDAD" "$FECHA")
 	if [ $ACTION -eq $K_ACTION_ALTA ] || [ $ACTION -eq $K_ACTION_REEMPLAZO ]; then
-		echo "es alta o reemplazo"
-		processValidFile
+		processValidFile "$ACTION" "$FILE" "$BANCO" "$FECHA"
+	elif [ $ACTION -eq $K_ACTION_ANTERIOR ]; then
+		echo "es anterior"
+		myLog 'processFile' 'info' "Fecha del Archivo anterior a la existente. Se rechaza el archivo"
+		moveRejectedFile "$ACEPDIR_PATH$FILE"
 	else
-		echo "es duplicado o anterior: $ACTION"
+		echo "es duplicado"
+		myLog 'processFile' 'info' "Archivo duplicado. Se rechaza el archivo"
+		moveRejectedFile "$ACEPDIR_PATH$FILE"
 	fi
 }
 
 #$1:action,$2:file,$3:banco,$4:fecha
 processValidFile(){
-	backupSaldosTab
-	
+	typeset ACTION=$1
+	typeset FILE=$2
+	typeset BANCO=$3
+	typeset FECHA=$4
 	typeset DELETED_RECORDS=0
+	
+	backupSaldosTab #to do
+	
 	if [ $ACTION -eq $K_ACTION_REEMPLAZO ]; then
 		typeset DELETE_PATTERN="^[^;]*;$CODIGO_ENTIDAD;[^;]*;[^;]*$"
 		DELETED_RECORDS=$(grep -c "$DELETE_PATTERN" "$SALDOS_LIS_FILE_PATH")
@@ -106,9 +117,23 @@ processValidFile(){
 	myLog 'processValidFile' 'info' "Registro aceptados: $ACCEPTED_RECORDS"
 	myLog 'processValidFile' 'info' "Registro rechazados: $REJECTED_RECORDS"
 	
-	#mover archivo procesado
+	moveProcessedFile "$ACEPDIR_PATH$FILE"
 	
 	updateSaldosTab "$BANCO" "$CODIGO_ENTIDAD" "$FECHA"
+}
+
+#1)fileName
+moveProcessedFile(){
+#	myLog "muevo el archivo $1 a $PROCDIR"
+	rm "$1" #por ahora elimina, dsp debe mover
+#	./mover.sh "$1" "$PROCDIR"
+}
+
+#1)fileName
+moveRejectedFile(){
+	myLog "muevo el archivo $1 a $RECHDIR"
+	rm "$1" #por ahora elimina, dsp debe mover
+	#	./mover.sh "$1" "$PROCDIR"
 }
 
 #$1:nombreEntidad,$2:codigoEntidad,$3:fechaSaldo
@@ -211,7 +236,10 @@ processAllFiles(){
 #	savePrevious	
 	for FILE_ITEM in $FILES;
 	do
-		processFile "$FILE_ITEM"
+		#evitar procesar carpetas
+		if [[ -f $ACEPDIR_PATH$FILE_ITEM ]]; then
+			processFile "$FILE_ITEM"
+		fi
 	done
 }
 
