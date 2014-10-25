@@ -2,12 +2,14 @@
 #Procesa los archivos
 . Helpers
 
-doCdosier() {
-  Log 'doCdosier'
+doCdossier() {
+  Log 'doCdossier'
+  #initProcess $CDOSSIER
 }
 
 doFsoldes() {
   Log 'doFsoldes'
+  #initProcess $FSOLDES
 }
 
 doProcessFile() {
@@ -24,4 +26,4 @@ do
 done
 
 doFsoldes
-doCdosier
+doCdossier

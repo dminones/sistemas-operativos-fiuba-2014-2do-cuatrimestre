@@ -7,7 +7,7 @@ popd > /dev/null
 
 RECEPT="Recept"
 FSOLDES="FSoldes"
-CDOSSIERE="CDossiere"
+CDOSSIER="CDossier"
 
 
 PIDDIR=$BINDIR
@@ -40,5 +40,44 @@ getProcessPid(){
 
 Log(){
 	#log $RECEPT_LOG $RECEPT $ERROR $1
-	echo $1 $RECEPT $ERROR > $RECEPT_LOG
+	echo $1" "$RECEPT" "$ERROR >> $RECEPT_LOG
+}
+
+
+# $1 Proceso a iniciar
+initProcess(){
+	processPid=$(getProcessPid $1)
+
+	if [ $processPid -eq 0 ]; then
+
+			echo -n "Iniciando $1...   "
+
+			if [ -f $INITLOG ]; then
+					rm $INITLOG
+			fi
+
+			if [ $RECEPT == $1 ]; then
+					initBackground $1
+			else
+					initForeground $1
+			fi
+
+			error=$(cat $INITLOG)
+			if [ -s $INITLOG ]; then
+					Log "No pudo iniciarse $1: "$error
+			else
+					echo "[OK]"
+			fi
+
+	else
+		echo "Recept corriendo bajo el no.: "$processPid
+	fi
+}
+
+initForeground(){
+	$BINDIR/$1
+}
+
+initBackground(){
+	$BINDIR/$1 >$INITLOG 2>&1 < /dev/null &
 }

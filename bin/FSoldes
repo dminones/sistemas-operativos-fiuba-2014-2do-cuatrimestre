@@ -36,6 +36,8 @@ start_paths(){
 	typeset	LOG_FILE_NAME="FSoldes"
 	LOG_FILE="$LOG_DIR$LOG_FILE_NAME"
 	ACEPDIR_PATH="$JOB_PATH$ACEPDIR"
+	PROCDIR="$ACEPDIR_PATH""proc/"
+	RECHDIR="$JOB_PATH""rech/"
 	typeset SALDOS_LIS_FILE="saldos.lis"
 	typeset SALDOS_TAB_FILE="saldos.tab"
 	SALDOS_DIR="$MAEDIR_PATH""saldos/"
@@ -54,6 +56,7 @@ format_bank(){
 	FORMAT_CBU=`sanitizeNumber $FORMAT_CBU`
 }
 
+#$1:file
 processFile(){
 	typeset FILE=$1	
 	echo "archivo a procesar: $ACEPDIR_PATH$FILE"
@@ -63,22 +66,30 @@ processFile(){
 	
 	format_bank "$BANCO"
 
-#	VOY POR ACAAAAAAAAAA
-
 	typeset ACTION=$(curseOfAction "$CODIGO_ENTIDAD" "$FECHA")
 	if [ $ACTION -eq $K_ACTION_ALTA ] || [ $ACTION -eq $K_ACTION_REEMPLAZO ]; then
-		echo "es alta o reemplazo"
-		processValidFile
+		processValidFile "$ACTION" "$FILE" "$BANCO" "$FECHA"
+	elif [ $ACTION -eq $K_ACTION_ANTERIOR ]; then
+		echo "es anterior"
+		myLog 'processFile' 'info' "Fecha del Archivo anterior a la existente. Se rechaza el archivo"
+		moveRejectedFile "$ACEPDIR_PATH$FILE"
 	else
-		echo "es duplicado o anterior: $ACTION"
+		echo "es duplicado"
+		myLog 'processFile' 'info' "Archivo duplicado. Se rechaza el archivo"
+		moveRejectedFile "$ACEPDIR_PATH$FILE"
 	fi
 }
 
 #$1:action,$2:file,$3:banco,$4:fecha
 processValidFile(){
-	backupSaldosTab
-	
+	typeset ACTION=$1
+	typeset FILE=$2
+	typeset BANCO=$3
+	typeset FECHA=$4
 	typeset DELETED_RECORDS=0
+	
+	backupSaldosTab #to do
+	
 	if [ $ACTION -eq $K_ACTION_REEMPLAZO ]; then
 		typeset DELETE_PATTERN="^[^;]*;$CODIGO_ENTIDAD;[^;]*;[^;]*$"
 		DELETED_RECORDS=$(grep -c "$DELETE_PATTERN" "$SALDOS_LIS_FILE_PATH")
@@ -106,13 +117,28 @@ processValidFile(){
 	myLog 'processValidFile' 'info' "Registro aceptados: $ACCEPTED_RECORDS"
 	myLog 'processValidFile' 'info' "Registro rechazados: $REJECTED_RECORDS"
 	
-	#mover archivo procesado
+	moveProcessedFile "$ACEPDIR_PATH$FILE"
 	
 	updateSaldosTab "$BANCO" "$CODIGO_ENTIDAD" "$FECHA"
 }
 
+#1)fileName
+moveProcessedFile(){
+	rm "$1" #por ahora elimina, dsp debe mover
+#	./mover.sh "$1" "$PROCDIR"
+}
+
+#1)fileName
+moveRejectedFile(){
+	rm "$1" #por ahora elimina, dsp debe mover
+	#	./mover.sh "$1" "$PROCDIR"
+}
+
 #$1:nombreEntidad,$2:codigoEntidad,$3:fechaSaldo
 updateSaldosTab(){
+	if [[ -f $SALDOS_TAB_FILE_PATH ]]; then
+		sed -i "/^[^;]*;$2;[^;]*$/d" "$SALDOS_TAB_FILE_PATH"
+	fi
 	typeset ROW="$1;$2;$3"
 	echo "$ROW" >> "$SALDOS_TAB_FILE_PATH"
 }
@@ -125,9 +151,6 @@ backupSaldosTab(){
 curseOfAction(){
 	if [ -f $SALDOS_TAB_FILE_PATH ]; then
 		typeset RECORD=`grep "^[^;]*;$1;[^;]*$" "$SALDOS_TAB_FILE_PATH"`
-#		myLog 'fsoldes' 'info' 'CURSE OF ACTION'
-#		myLog 'fsoldes' 'info' "codigo entidad: $1"
-#		myLog 'fsoldes' 'info' "record: $RECORD"
 		if [ "$RECORD" == "" ]; then
 			echo "$K_ACTION_ALTA"
 		else
@@ -136,15 +159,11 @@ curseOfAction(){
 			typeset LAST_DATE=$(date -d "$LAST_DATE_STRING" +"%Y%m%d")
 			typeset FILE_DATE=$(date -d "$2" +"%Y%m%d")
 		
-#			myLog 'fsoldes' 'info' "LAST_DATE: $LAST_DATE"
-#			myLog 'fsoldes' 'info' "FILE_DATE: $FILE_DATE"
-		
 			if [ $FILE_DATE -gt $LAST_DATE ];then
 				echo "$K_ACTION_REEMPLAZO"
 			elif [ $FILE_DATE -eq $LAST_DATE ];then
 				echo "$K_ACTION_DUPLICADO"
 			else
-#				myLog 'fsoldes' 'info' "es anterior"
 				echo "$K_ACTION_ANTERIOR"
 			fi
 		fi
@@ -211,7 +230,10 @@ processAllFiles(){
 #	savePrevious	
 	for FILE_ITEM in $FILES;
 	do
-		processFile "$FILE_ITEM"
+		#evitar procesar carpetas
+		if [[ -f $ACEPDIR_PATH$FILE_ITEM ]]; then
+			processFile "$FILE_ITEM"
+		fi
 	done
 }
 
