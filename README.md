@@ -27,3 +27,21 @@ ejemplos:
 . CsvParser
 FORMAT_CBU=`getLastCsvField "$LINEA"`	
 CODIGO_ENTIDAD=`getCsvFieldNumber "$LINEA" 2`
+
+3) Ayuda de archivos
+#importar
+. utilidadArchivo
+#copiar
+copiar "$LOG_DIR" "$LOG_NAME" "$DUP_DIR" "$FILE_NAME" "$DIR_1" "$DIR_2"
+#mover
+mover "$LOG_DIR" "$LOG_NAME" "$DUP_DIR" "$FILE_NAME" "$DIR_1" "$DIR_2"
+
+parametros:
+1. directorio donde se encuentra el log (1º param de la funcion log)
+2. where del log
+3. nombre de la carpeta donde se van a poner los archivos duplicados (valor de $DUP_DIR)
+4. nombre del archivo a copiar/mover
+5. path completo del origen
+6. path completo del destino
+
+PD: no logre importar la funcion log dentro de esta :P
