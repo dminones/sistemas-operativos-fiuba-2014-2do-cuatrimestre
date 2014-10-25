@@ -14,16 +14,20 @@ doFsoldes() {
 
 doProcessFile() {
   file=$1
-  Log "Procesando $file file..."
+  Log "Procesando $file ..."
   # take action on each file. $f store current file name
 }
 
-NOVEDIR_FILES=$NOVEDIR/*
+doRecept(){
+  NOVEDIR_FILES=$NOVEDIR/*
 
-for f in $NOVEDIR_FILES
-do
-  doProcessFile $f
-done
+  for f in $NOVEDIR_FILES
+  do
+    doProcessFile $f
+  done
 
-doFsoldes
-doCdossier
+  doFsoldes
+  doCdossier
+}
+
+doRecept
