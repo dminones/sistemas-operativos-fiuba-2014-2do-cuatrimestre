@@ -1,6 +1,7 @@
 #!/bin/bash
 #Procesa los archivos
 . Helpers
+. utilidadArchivo
 
 bankExists(){
   local NAME=$1
@@ -36,6 +37,67 @@ tribunalExists(){
 validDate(){
   local DATE=$1
 
+  if [[ $DATE =~ ^[0-9]{4}[0-1]{1}[0-9]{1}[0-3]{1}[0-9]{1}$ ]]; then
+    year=${DATE:0:4}
+    month=${DATE:4:2}
+    day=${DATE:6:8}
+  else
+    return 1
+  fi
+
+  if [[ $month -gt 12 ]]; then
+    return 1
+  fi
+
+
+  # if month is negative (<0) or greater than 12
+  # then it is invalid month
+  if [ $month -le 0 -o $month -gt 12 ];
+  then
+      return 1
+  fi
+
+  # Find out number of days in given month
+  case $month in
+      1) days=31;;
+      2) days=28 ;;
+      3) days=31 ;;
+      4) days=30 ;;
+      5) days=31 ;;
+      6) days=30 ;;
+      7) days=31 ;;
+      8) days=31 ;;
+      9) days=30 ;;
+      10) days=31 ;;
+      11) days=30 ;;
+      12) days=31 ;;
+      *) days=-1;;
+  esac
+
+  # find out if it is a leap year or not
+
+  if [ $month -eq 2 ]; # if it is feb month then only check of leap year
+  then
+  	if [ $((year % 4)) -ne 0 ] ; then
+  	   : #  not a leap year : means do nothing and use old value of days
+  	elif [ $((year % 400)) -eq 0 ] ; then
+  	   # yes, it's a leap year
+  	   days=29
+  	elif [ $((year % 100)) -eq 0 ] ; then
+  	   : # not a leap year do nothing and use old value of days
+  	else
+  	   # it is a leap year
+  	   days=29
+  	fi
+  fi
+
+  # if day is negative (<0) and if day is more than
+  # that months days then day is invaild
+  if [ $day -le 0 -o $day -gt $days ];
+  then
+      return 1
+  fi
+
   return 0
 }
 
@@ -63,45 +125,58 @@ validFile(){
 }
 
 executeIfNeeded(){
-  command=$1
-  files=$2
+  local command=$1
+  local files=$2
 
-  echo "$command"
   if [[ -n $(ls $files 2>/dev/null) ]]; then
     #initProcess $command
-    Log '$command'
+    Log $command
   fi
 }
 
 doCdossier() {
   local ACEPDIR_EXPEDIENTES=$ACEPDIR/*@*
-
   executeIfNeeded $CDOSSIER $ACEPDIR_EXPEDIENTES
 }
 
 doFsoldes() {
   local ACEPDIR_BANCOS=$ACEPDIR/[^@]*_*
-
   executeIfNeeded $FSOLDES $ACEPDIR_BANCOS
+}
+
+moveFile(){
+  local LOG_DIR=$LOGDIR
+  local LOG_NAME=$RECEPT_LOG_NAME
+  local DUP_DIR=""
+  local FILE_NAME=$(basename $1)
+  local DIR_1=$NOVEDIR
+  local DIR_2=$2
+
+  mover "$LOG_DIR" "$LOG_NAME" "$DUP_DIR" "$FILE_NAME" "$DIR_1" "$DIR_2"
 }
 
 doProcessFile() {
   local file=$1
 
   if validFile $file; then
-    echo "mover "$file" a acepdid"
+    Log "Mover "$file" a ACEPDIR"
+    moveFile $file $ACEPDIR
   else
-    echo "mover "$file" a rechazdir"
+    Log "Mover "$file" a RECHDIR"
+    moveFile $file $RECHDIR
   fi
 }
 
 doRecept(){
   NOVEDIR_FILES=$NOVEDIR/*
 
+  SAVEIFS=$IFS
+  IFS=$(echo -en "\n\b")
   for f in $NOVEDIR_FILES
   do
     doProcessFile $f
   done
+  IFS=$SAVEIFS
 
   doFsoldes
   doCdossier
