@@ -6,7 +6,8 @@ MAEDIR="../data"
 REPODIR="../demande"
 LOGDIR="../log"
 RECHDIR="../nok"
-LOG_FILE="../log/Cdossier"
+
+LOG_FILE="$LOGDIR/Cdossier"
 WHERE="Cdossier"
 
 #Import
@@ -37,13 +38,13 @@ processAllFiles(){
 			log "$LOG_FILE" "$WHERE" "INFO" "Archivo a procesar: $FILE"
 			if [ -f $ACEPDIR/proc/$FILE ]
 			then
-				mv $ACEPDIR/$FILE $RECHDIR
+				mv $ACEPDIR/$FILE $RECHDIR                     #MOVER ARCHIVO
 				log "$LOG_FILE" "$WHERE" "WAR" "Archivo duplicado. Se rechaza el archivo." 
 			else
 				CHECK=`grep -v '^[^;]*;[^;]*;[^;]*;.*' $ACEPDIR/$FILE`
 				if [ "$CHECK" != "" ] 
 				then
-					mv $ACEPDIR/$FILE $RECHDIR
+					mv $ACEPDIR/$FILE $RECHDIR             #MOVER ARCHIVO
 					log "$LOG_FILE" "$WHERE" "WAR" "Archivo con formato erroneo. Se rechaza el archivo." 
 				else
 					processFile "$FILE"
@@ -54,14 +55,34 @@ processAllFiles(){
 }
 
 processFile(){
-		
+
+if [ -f $REPODIR/exp_output ] 
+then		
+	cp $REPODIR/exp_output $REPODIR/exp_outputTEMP
+	mv $REPODIR/exp_output $REPODIR/ant       #MOVER ARCHIVO
+	cp $REPODIR/exp_outputTEMP $REPODIR/exp_output
+	rm $REPODIR/exp_outputTEMP 
+fi
+
 CAMPO2=`echo $1 | sed 's/@.*//'` #CAMARA
 CAMPO3=`echo $1 | sed 's/[^@]*@\([^@]*\).*/\1/'` #TRIBUNAL
+
+LEIDOS=0
+IGNORADOS=0
+REEMPLAZADOS=0
+AGREGADOS=0
 
 	while read LINE;
 	do
 		processLine "$LINE";
 	done < "$ACEPDIR/$1"
+
+log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros leídos: $LEIDOS"
+log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros ignorados: $IGNORADOS"
+log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros reemplazados: $REEMPLAZADOS"
+log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros agregados: $AGREGADOS"
+
+mv $ACEPDIR/$1 $ACEPDIR/proc                                           #MOVER ARCHIVO
 
 }
 
@@ -81,35 +102,39 @@ fi
 
 processLine(){
 
-CAMPO1=`getCsvFieldNumber "$1" 1` #EXPEDIENTE
-CAMPO4=`getCsvFieldNumber "$1" 2` #CARATULA
+LEIDOS=`expr $LEIDOS + 1`
+
+CAMPO1=`getCsvFieldNumber "$1" 2` #EXPEDIENTE 
+CAMPO4=`getCsvFieldNumber "$1" 1` #CARATULA 
 CAMPO5=`getCsvFieldNumber "$1" 3` #ESTADO INFORMATIVO
 CAMPO6=`getCsvFieldNumber "$1" 4 | sed 's/\r//g'` #CBU	
 CAMPO7=""
 CAMPO8=""
+
 if [ "$CAMPO5" = "CUMPLIMIENTO" ] 
 then
 	CAMPO8="PEDIDO URGENTE PARA LIBERAR CUENTA"
-fi
-if [ "$CAMPO6" = "" ]
-then
-	if [ "$CAMPO5" = "SIN CUENTA ASOCIADA" ]
-	then
-		CAMPO8="PEDIDO ESTANDAR DE ASIGNACION DE CUENTA"
-	fi
-
-	if [ "$CAMPO5" = "EN GESTION" ] || [ "$CAMPO5" = "REMITIDO" ]
-	then
-		CAMPO8="ESPERAR 48 HORAS PARA RECLAMAR ASIGNACION DE CUENTA"
-	fi
-
-	if [ "$CAMPO5" = "A DESPACHO" ] || [ "$CAMPO5" = "EN CASILLERO" ]
-	then
-		CAMPO8="ESPERAR 96 HORAS PARA RECLAMAR ASIGNACION DE CUENTA"
-	fi
 else
-	if [ "$CAMPO5" != "CUMPLIMIENTO" ] 
+	if [ "$CAMPO6" = "" ]
 	then
+		if [ "$CAMPO5" = "SIN CUENTA ASOCIADA" ]
+		then
+			CAMPO8="PEDIDO ESTANDAR DE ASIGNACION DE CUENTA"
+		else
+			if [ "$CAMPO5" = "EN GESTION" ] || [ "$CAMPO5" = "REMITIDO" ]
+			then
+				CAMPO8="ESPERAR 48 HORAS PARA RECLAMAR ASIGNACION DE CUENTA"
+			else
+				if [ "$CAMPO5" = "A DESPACHO" ] || [ "$CAMPO5" = "EN CASILLERO" ]
+				then
+					CAMPO8="ESPERAR 96 HORAS PARA RECLAMAR ASIGNACION DE CUENTA"
+				else
+					IGNORADOS=`expr $IGNORADOS + 1`	
+				fi
+			fi
+		fi
+
+	else
 		if [ ${#CAMPO6} -ne 22 ] 
 		then
 			CAMPO8="PEDIDO URGENTE ASIGNAR NUEVA CBU POR CBU INCORRECTA"
@@ -124,9 +149,29 @@ else
 		fi
 	fi
 fi
-	
-echo $CAMPO1";"$CAMPO2";"$CAMPO3";"$CAMPO4";"$CAMPO5";"$CAMPO6";"$CAMPO7";"$CAMPO8>> $REPODIR/exp_output
-
+if [ "$CAMPO8" != "" ]	
+	then
+	NEW=`echo $CAMPO1";"$CAMPO2";"$CAMPO3";"$CAMPO4";"$CAMPO5";"$CAMPO6";"$CAMPO7";"$CAMPO8`
+	if [ -f $REPODIR/exp_output ] 
+		then	
+			HEAD=`echo $CAMPO1";"$CAMPO2";"$CAMPO3`
+			FOUND=""
+			FOUND=`grep -n "$HEAD" $REPODIR/exp_output`
+			NRO=`echo $FOUND | sed 's/:.*//'`
+			if [ "$FOUND" != "" ]
+			then
+				REEMPLAZADOS=`expr $REEMPLAZADOS + 1`
+				sed -i ''$NRO'd' $REPODIR/exp_output	
+				echo "$NEW" >> $REPODIR/exp_output
+			else
+				AGREGADOS=`expr $AGREGADOS + 1`
+				echo "$NEW" >> $REPODIR/exp_output
+			fi
+		else
+			AGREGADOS=`expr $AGREGADOS + 1`
+			echo "$NEW" >> $REPODIR/exp_output
+	fi
+fi
 }
 
 initLog
