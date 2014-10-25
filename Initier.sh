@@ -1,12 +1,15 @@
 #!/bin/bash
 
 WHERE='Initier.sh'
-
-log(){
+GRUPOCONF="$GRUPO/conf"
+ARCHIVOCONF="$GRUPOCONF/Deployer.conf"
+echo_y_log(){
+LOGFILE= "$LOGDIR/log.txt"
 WHAT=$1
-WHY=$2
-echo $WHY
-log $WHERE $WHAT "WHY"
+WHAT=$2
+WHY=$3
+LOGMESSAGE= "$1;$2;$3"
+echo -e $LOGMESSAGE | cat >> $LOGFILE
 }
 
 verificarAmbiente(){
@@ -27,22 +30,19 @@ instalacion="SI"
 ARCHIVOBANCOS="$MAEDIR/bancos.dat"
 if ! [-f "$ARCHIVOBANCOS"]
 	then export instalacion="NO"
-	log "Initier" "Informative" "Falta el archivo bancos.dat. Instale nuevamente"
-	echo "Falta el archivo bancos.dat. Instale nuevamente"
+	echo_y_log INFO "Falta el archivo bancos.dat. Instale nuevamente"
 fi
 
 ARCHIVOCAMARAS="$MAEDIR/camaras.dat"
 if ! [-f "$ARCHIVOCAMARAS"]
 	then export instalacion="NO"
-	log "Initier" "Informative" "Falta el archivo camaras.dat. Instale nuevamente"
-	echo "Falta el archivo camaras.dat. Instale nuevamente"
+	echo_y_log INFO "Falta el archivo camaras.dat. Instale nuevamente"
 fi
 
 ARCHIVOPJN="$MAEDIR/pjn.dat"
 if ! [-f "$ARCHIVOPJN"]
 	then export instalacion="NO"
-	log "Initier" "Informative" "Falta el archivo pjn.dat. Instale nuevamente"
-	echo "Falta el archivo pjn.dat. Instale nuevamente"
+	echo_y_log INFO "Falta el archivo pjn.dat. Instale nuevamente"
 fi
 }
 
@@ -58,6 +58,18 @@ done
 }
 
 arrancarRecept(){
+echo "Desea efectuar la activacion del Recept?" Si - No
+read respuesta
+if [ $respuesta = 'Si']
+	ejecutarRecept
+echo "Recept corriendo. Para deternerlo ejecute el comando Stop.sh"
+else echo_y_log INFO "Recept no activado. Si quiere arrancarlo ejecute el comando ./Debut.sh"
+}
+
+ejecutarRecept(){
+./Recept.sh &
+echo_y_log "Recept corriendo. Si quiere detenerlo ejecute el comando ./Stop.sh"
+log log "Recept corriendo bajo el no. : <Process Id de Recept>"
 
 }
 
@@ -73,12 +85,9 @@ if[$AMBIENTE=false]
 		then echo "Instalacion incompleta.Falta un archivo. Por favor, verifique e intenten nuevamente."	
 		else
 		darPermisos
-		cantParametros=$#
-		parametroUno=$1
 		arrancarRecept
 		fi
-else log "Initier" "Informative" "Ambiente ya inicializado, si quiere reiniciar termine su sesion e ingrese nuevamente."
-echo "Ambiente ya inicializado, si quiere reiniciar, termine su sesion e ingrese nuevamente."
+echo_y_log"Ambiente ya inicializado, si quiere reiniciar, termine su sesion e ingrese nuevamente."
 fi
 log "Initier" "Informative" "Fin de Initier"
 cerrarArchivoDeLogYTerminarProceso

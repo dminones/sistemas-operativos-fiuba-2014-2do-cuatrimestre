@@ -74,19 +74,17 @@ validDate(){
       *) days=-1;;
   esac
 
-  # find out if it is a leap year or not
-
-  if [ $month -eq 2 ]; # if it is feb month then only check of leap year
+  if [ $month -eq 2 ]; # en febrero ver si es bisiesto
   then
   	if [ $((year % 4)) -ne 0 ] ; then
-  	   : #  not a leap year : means do nothing and use old value of days
+  	   : #  no es bisiesto
   	elif [ $((year % 400)) -eq 0 ] ; then
-  	   # yes, it's a leap year
+  	   # es bisiesto
   	   days=29
   	elif [ $((year % 100)) -eq 0 ] ; then
-  	   : # not a leap year do nothing and use old value of days
+  	   : # no es bisiesto
   	else
-  	   # it is a leap year
+  	   # bisiesto
   	   days=29
   	fi
   fi
