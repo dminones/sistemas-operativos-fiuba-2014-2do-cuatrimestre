@@ -27,7 +27,8 @@ readonly K_REC_ACCEPTED=1
 
 #functions
 start_paths(){
-	JOB_PATH="../../../Documents/facultad/sistemasOperativos/tp/"
+	local BINDIR=`pwd`
+	local JOB_PATH=$BINDIR/../
 	MAEDIR="maedir/"
 	MAEDIR_PATH="$JOB_PATH$MAEDIR"
 	ACEPDIR="acepdir/"
