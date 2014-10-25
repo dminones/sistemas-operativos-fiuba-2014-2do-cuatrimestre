@@ -2,44 +2,6 @@
 # Debut: verifica si está corriendo Receipt y lo ejecuta si no está corriendo
 . Helpers
 
-# $1 Proceso a iniciar
-initProcess(){
-  processPid=$(getProcessPid $1)
-
-  if [ $processPid -eq 0 ]; then
-
-      echo -n "Iniciando $1...   "
-
-      if [ -f $INITLOG ]; then
-          rm $INITLOG
-      fi
-
-      if [ $RECEPT == $1 ]; then
-          initBackground $1
-      else
-          initForeground $1
-      fi
-
-      error=$(cat $INITLOG)
-      if [ -s $INITLOG ]; then
-          Log "No pudo iniciarse $1: "$error
-      else
-          echo "[OK]"
-      fi
-
-  else
-    echo "Recept corriendo bajo el no.: "$processPid
-  fi
-}
-
-initForeground(){
-  $BINDIR/$1
-}
-
-initBackground(){
-  $BINDIR/$1 >$INITLOG 2>&1 < /dev/null &
-}
-
 if [ $# -lt 1 ]
 then
         echo "Uso : $0 <<comando a ejecutar>>"

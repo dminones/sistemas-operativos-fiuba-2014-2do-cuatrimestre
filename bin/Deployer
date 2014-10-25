@@ -1,6 +1,18 @@
 #!/bin/bash
 
-WHERE='Deployer.sh'
+# Constantes con las preguntas mas largas
+HEADER="TP SO7508 Segundo Cuatrimestre 2014. Tema E Copyright c Grupo xx\n"
+
+ERR_PERL=$HEADER"Para instalar el TP es necesario contar con Perl 5 o superior. Efectúe su instalación e inténtelo nuevamente.\nProceso de Instalación Cancelado"
+OK_PERL=$HEADER"Perl Version: "
+ERR_ESPACIO(){
+	echo "Insuficiente espacio en disco.\n Espacio disponible: $1 Mb."
+	echo "Espacio requerido: $2 Mb\nCancele la instalación o inténtelo nuevamente."
+}
+
+TYC=$HEADER"Al instalar TP SO7508 Segundo Cuatrimestre 2014 UD. expresa aceptar los términos y condiciones del \"ACUERDO DE LICENCIA DE SOFTWARE\" incluido en este paquete. Acepta? SI - NO"
+
+WHERE='Deployer'
 TRUE=1
 FALSE=0
 
@@ -9,14 +21,15 @@ FALSE=0
 echo_y_log()
 {
 	WHAT=$1
-	WHY=$2
-	echo $WHY
+	WHY=$(echo "$2" | sed 's-\\n-\n-')
+	echo "$WHY"
 	log $WHERE $WHAT "$WHY"
 }
 
 log()
 {
 	echo Log: $1 $2 "$3"
+	# TODO usar el verdadero log
 	# bash log.sh $1 $2 $3
 }
 
@@ -26,21 +39,64 @@ checkear_instalacion()
 	echo $FALSE
 }
 
+# Imprime todas las variables
+imprimir_variables(){
+	# TODO el listado de archivos para cada carpeta, hay que hardcodearlo :P
+	local TO_PRINT=$(echo "$HEADER")
+	TO_PRINT=$(echo "$TO_PRINT""Directorio Configuracion: /conf")
+	#TO_PRINT=$(echo "$TO_PRINT""$(ls -l $GRUPO/conf)")
+	TO_PRINT=$(echo "$TO_PRINT\nDirectorio Ejecutables: $BINDIR")
+	#TO_PRINT=$(echo "$TO_PRINT""$(ls -l $GRUPO$BINDIR)")
+	TO_PRINT=$(echo "$TO_PRINT\nDirectorio Datos Maestros y Tablas: $MAEDIR")
+	#TO_PRINT=$(echo "$TO_PRINT""$(ls -l $GRUPO$MAEDIR)")
+	TO_PRINT=$(echo "$TO_PRINT\nDirectorio Flujo de Novedades: $NOVEDIR")
+	TO_PRINT=$(echo "$TO_PRINT\nDirectorio Novedades Aceptadas: $ACEPDIR")
+	TO_PRINT=$(echo "$TO_PRINT\nEspacio mínimo libre para flujo de novedades: $DATASIZE Mb")
+	TO_PRINT=$(echo "$TO_PRINT\nDirectorio Pedidos e Informes de Salida: $REPODIR")
+	TO_PRINT=$(echo "$TO_PRINT\nDirectorio Archivos Rechazados: $RECHDIR")
+	TO_PRINT=$(echo "$TO_PRINT\nDirectorio de Logs de Comandos: $LOGDIR")
+	TO_PRINT=$(echo "$TO_PRINT\nSubDirectorio de Resguardo de Archivos Duplicados: $DUPDIR")
+	TO_PRINT=$(echo "$TO_PRINT\nDirectorio Base: $GRUPO")
+	echo_y_log INFO "$TO_PRINT"
+}
+
 # Pregunta que valores deben tomar las variables al usuario
 preguntar_variables()
 {
 	FIN=$FALSE
+	local VALID=$FALSE
 	while [ $FIN -eq $FALSE ]
 	do
 		echo_y_log INFO "Defina el directorio de intralacion de los ejecutables ($BINDIR):"
+		while [ $VALID -eq $FALSE ]
+		do
 		BINDIR=$(leer_o_default $BINDIR)
+		checkear_dir "$BINDIR"
+		VALID="$?"
+		done
+		VALID=$FALSE
 		echo_y_log INFO "Defina el directorio para maestros y tablas ($MAEDIR):"
 		MAEDIR=$(leer_o_default $MAEDIR)
 		echo_y_log INFO "Defina el directorio para el arribo del flujo de novedades ($NOVEDIR):"
 		NOVEDIR=$(leer_o_default $NOVEDIR)
 		echo_y_log INFO "Defina espacio minimo libre para el arribo de novedades en Mbytes ($DATASIZE):"
+		while [ $VALID -eq $FALSE ]
+		do
 		DATASIZE=$(leer_o_default $DATASIZE)
-		# chekear_espacio
+		checkear_numero "$DATASIZE"
+		VALID="$?"
+		done
+		VALID=$FALSE
+		while [ $VALID -eq $FALSE ]
+		do
+		checkear_espacio
+		VALID="$?"
+		if [ $VALID -eq $FALSE ]
+		then
+			# Espera a que el usuario presione enter (evita loop)
+			local WAIT=$(leer_o_default "a")
+		fi
+		done
 		echo_y_log INFO "Defina el directorio para las Novedades aceptadas ($ACEPDIR):"
 		ACEPDIR=$(leer_o_default $ACEPDIR)
 		echo_y_log INFO "Defina el directorio de grabacion de los Pedidos e Informes de Salida ($REPODIR):"
@@ -51,14 +107,28 @@ preguntar_variables()
 		LOGDIR=$(leer_o_default $LOGDIR)
 		echo_y_log INFO "Defina el nombre del SubDirectorio de Resguardo de Archivos Duplicados ($DUPDIR):"
 		DUPDIR=$(leer_o_default $DUPDIR)
-		FIN=$TRUE
+		clear
+		imprimir_variables
+		echo_y_log INFO "Estado de la instalación: LISTA"
+		local ACEPTO=$(leer_o_default "a")
+		while [ "$ACEPTO" != "SI" -a "$ACEPTO" != "NO" ]
+		do
+		echo_y_log WARN "Respuesta Incorrecta. Escriba SI o NO."
+		ACEPTO=$(leer_o_default "a")
+		done
+		if [ "$ACEPTO" == "SI" ]
+		then
+			FIN=$TRUE
+		else
+			FIN=$FALSE
+		fi
 	done
 }
 
 # Pregunta una variable y espera la respuesta
 leer_o_default()
 {
-	DEFAULT=$1
+	local DEFAULT=$1
 	read LEIDO
 	if [ "$LEIDO" ]
 	then
@@ -69,20 +139,70 @@ leer_o_default()
 	
 }
 
+# Comprobar si es un dir valido
+checkear_dir(){
+	local DIR=$1
+	local IS_DIR=$(echo $DIR | grep -c "^/[^/]*$")
+	if [ $IS_DIR -eq $FALSE ]
+	then
+		echo_y_log ERR "El directorio debe empezar con \/ y terminar en un nombre. Intentelo nuevamente."
+		return $FALSE
+	fi
+	if [ "$DIR" == "$TPDIR" ]
+	then
+		echo_y_log ERR "Este directorio esta reservado. Intente con otro."
+		return $FALSE
+	fi
+	if [ "$DIR" == "$CONFDIR" ]
+	then
+		echo_y_log ERR "Este directorio esta reservado. Intente con otro."
+		return $FALSE
+	fi
+	return $TRUE
+}
+
+# Comprobar si es un numero
+checkear_numero(){
+	local NUMBER=$1
+	local IS_NUMBER=$(echo $NUMBER | grep -o -c "[0-9][0-9]*")
+	if [ $IS_NUMBER -eq "0" ]
+	then
+		echo_y_log ERR "El campo debe ser un numero. Intente nuevamente."
+		return $FALSE
+	fi
+	return $TRUE
+}
+# Comprobar si hay suficiente espacio en la pc
+checkear_espacio(){
+	local SIZE_PARSE=$(stat -f -c %a/%S $GRUPO)
+	local BLOCK_COUNT=$(echo $SIZE_PARSE | sed "s-/[0-9]*--")
+	local BLOCK_SIZE=$(echo $SIZE_PARSE | sed "s-[0-9]*/--")
+	local FREE_SIZE_MB=$(echo "($BLOCK_COUNT*$BLOCK_SIZE)/(1024*1024)" | bc)
+	if [ $(echo "$FREE_SIZE_MB<$DATASIZE" | bc) -eq $TRUE ]
+	then
+		local ERR_MSG=$(ERR_ESPACIO "$FREE_SIZE_MB" "$DATASIZE")
+		echo_y_log ERR "$ERR_MSG"
+		return $FALSE
+	fi
+	return $TRUE	
+}
+
 # Programa principal
 
 # Variables con valores default
-GRUPO=./grupo
-CONFDIR=$GRUPO/conf
-BINDIR=$GRUPO/bin
-MAEDIR=$GRUPO/data
-NOVEDIR=$GRUPO/flux
+# Primero detecta el directorio del grupo
+GRUPO=$(pwd | sed "s-\(.*\)/[^/]*-\1-")
+CONFDIR=/conf
+TPDIR=/tp
+BINDIR=/bin
+MAEDIR=/data
+NOVEDIR=/flux
 DATASIZE=100
-ACEPDIR=$GRUPO/ok
-REPODIR=$GRUPO/demande
-RECHDIR=$GRUPO/nok
-LOGDIR=$GRUPO/log
-DUPDIR=$GRUPO/dup
+ACEPDIR=/ok
+REPODIR=/demande
+RECHDIR=/nok
+LOGDIR=/log
+DUPDIR=/dup
 
 echo_y_log INFO "Inicio de Ejecucion de Deployer"
 echo_y_log INFO "Log de la instalacion: $CONFDIR/Deployer.log"
@@ -95,7 +215,7 @@ else
 	TERMINOS_ACEPTADOS=2
 	while [[ $TERMINOS_ACEPTADOS -eq 2 ]]
 	do
-		echo_y_log INFO "Aceptas Terminos? (SI - NO)"
+		echo_y_log INFO "$TYC"
 		TERMINOS_LEIDOS=$(leer_o_default "a")
 		if [[ $TERMINOS_LEIDOS = "SI" ]]
 		then
@@ -105,7 +225,7 @@ else
 			then
 				TERMINOS_ACEPTADOS=$FALSE
 			else
-				echo_y_log ERR "Respuesta Incorrecta. Escriba SI o NO."
+				echo_y_log WARN "Respuesta Incorrecta. Escriba SI o NO."
 			fi
 		fi
 	done
@@ -124,12 +244,10 @@ else
 	fi
 	if [ $TRUE -eq $PERL_EXISTE ]
 	then
-		echo "Perl version: $(perl -v)"
+		echo "$OK_PERL $(perl -v)"
 		preguntar_variables
 	else
-		echo_y_log ERR "NO PERL ERROR!!"
-	fi
-	else
-		echo_y_log ERR "NO TERMINOS!"
+		echo_y_log ERR "$ERR_PERL"
+	fi	
 	fi
 fi
