@@ -2,13 +2,34 @@
 # Verifica si está corriendo Receipt y lo para si está corriendo
 . Helpers
 
-if [ $receptPid == 0 ]; then
-    echo "Recept no está ejecutandose"
-else
-	echo -n "Deteniendo Recept...    "
-	Result=$(kill -9 $receptPid)
-	if [ !$Result ]; then
-		rm $RECEPT_PID_FILE > /dev/null
-		echo "[OK]"
-	fi
+stopProcess(){
+  processPid=$(getProcessPid $1)
+
+  if [ $processPid -eq 0 ]; then
+      echo "$1 no está ejecutandose"
+  else
+    echo -n "Deteniendo $1...    "
+    Result=$(pkill -f $1)
+    if [ !$Result ]; then
+      echo "[OK]"
+    fi
+  fi
+}
+
+if [ $# -lt 1 ]
+then
+        echo "Uso : $0 <<comando a detener>>"
+        exit
 fi
+
+case "$1" in
+
+$RECEPT)  stopProcess $1
+    ;;
+$FSOLDES)  stopProcess $1
+    ;;
+$CDOSSIERE)  stopProcess $1
+    ;;
+*) echo "El comando $1 no existe"
+   ;;
+esac

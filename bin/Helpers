@@ -1,7 +1,14 @@
 #!/bin/bash
+#. Logger
+
 pushd `dirname $0` > /dev/null
 BINDIR=`pwd`
 popd > /dev/null
+
+RECEPT="Recept"
+FSOLDES="FSoldes"
+CDOSSIERE="CDossiere"
+
 
 PIDDIR=$BINDIR
 LOGDIR=$BINDIR
@@ -13,6 +20,8 @@ INITLOG=$LOGDIR"/ReceptInit.log"
 RECEPT_PID_FILE=$PIDDIR"/RECEIPT_PID"
 RECEPT_LOG=$LOGDIR"/Recept.log"
 
+ERROR="[ERR]"
+
 getFileContent() {
 	if [ -f $1 ]; then
 	  	echo $(<"$1")
@@ -21,8 +30,15 @@ getFileContent() {
 	fi
 }
 
-receptPid=$(getFileContent $RECEPT_PID_FILE)
+getProcessPid(){
+	if [ "$(pgrep -f -o $1)" = "" ];then
+			echo 0
+	else
+			pgrep -f -o $1
+	fi
+}
 
 Log(){
-	echo $1 > $RECEPT_LOG
+	#log $RECEPT_LOG $RECEPT $ERROR $1
+	echo $1 $RECEPT $ERROR > $RECEPT_LOG
 }

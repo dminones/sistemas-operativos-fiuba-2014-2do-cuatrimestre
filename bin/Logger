@@ -12,8 +12,8 @@
 reduceFileIfNeeded(){
 	typeset FILE=$1
 	if [ -f $FILE ]; then #se fija si existe el archivo de log
-		#size en bytes	
-		typeset SIZE_LIMIT=100000 
+		#size en bytes
+		typeset SIZE_LIMIT=100000
 		typeset LINES_TO_DELETE='1,250d'
 		typeset SIZE=`wc -c < $FILE`
 		if [ $SIZE -ge $SIZE_LIMIT ]; then
@@ -31,7 +31,7 @@ log(){
 	typeset FILE_PATH="$JOB_PATH$FILE$EXTENSION"
 
 	reduceFileIfNeeded "$FILE_PATH"
-	
+
 	typeset WHERE=$2
 	typeset DATETIME=`date +'%Y/%m/%d %T'`
 	typeset CODE=$3
@@ -39,4 +39,3 @@ log(){
 	typeset MESSAGE="$DATETIME - $USER - $WHERE - $CODE - $DESCRIPTION"
 	echo "$MESSAGE" >> "$FILE_PATH"
 }
-
