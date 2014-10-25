@@ -14,6 +14,7 @@ PIDDIR=$BINDIR
 LOGDIR=$BINDIR
 NOVEDIR=$BINDIR/../novedir
 ACEPDIR=$BINDIR/../acepdir
+MAEDIR=$BINDIR/../maedir
 
 INITLOG=$LOGDIR"/ReceptInit.log"
 
