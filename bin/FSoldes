@@ -124,20 +124,21 @@ processValidFile(){
 
 #1)fileName
 moveProcessedFile(){
-#	myLog "muevo el archivo $1 a $PROCDIR"
 	rm "$1" #por ahora elimina, dsp debe mover
 #	./mover.sh "$1" "$PROCDIR"
 }
 
 #1)fileName
 moveRejectedFile(){
-	myLog "muevo el archivo $1 a $RECHDIR"
 	rm "$1" #por ahora elimina, dsp debe mover
 	#	./mover.sh "$1" "$PROCDIR"
 }
 
 #$1:nombreEntidad,$2:codigoEntidad,$3:fechaSaldo
 updateSaldosTab(){
+	if [[ -f $SALDOS_TAB_FILE_PATH ]]; then
+		sed -i "/^[^;]*;$2;[^;]*$/d" "$SALDOS_TAB_FILE_PATH"
+	fi
 	typeset ROW="$1;$2;$3"
 	echo "$ROW" >> "$SALDOS_TAB_FILE_PATH"
 }
@@ -150,9 +151,6 @@ backupSaldosTab(){
 curseOfAction(){
 	if [ -f $SALDOS_TAB_FILE_PATH ]; then
 		typeset RECORD=`grep "^[^;]*;$1;[^;]*$" "$SALDOS_TAB_FILE_PATH"`
-#		myLog 'fsoldes' 'info' 'CURSE OF ACTION'
-#		myLog 'fsoldes' 'info' "codigo entidad: $1"
-#		myLog 'fsoldes' 'info' "record: $RECORD"
 		if [ "$RECORD" == "" ]; then
 			echo "$K_ACTION_ALTA"
 		else
@@ -161,15 +159,11 @@ curseOfAction(){
 			typeset LAST_DATE=$(date -d "$LAST_DATE_STRING" +"%Y%m%d")
 			typeset FILE_DATE=$(date -d "$2" +"%Y%m%d")
 		
-#			myLog 'fsoldes' 'info' "LAST_DATE: $LAST_DATE"
-#			myLog 'fsoldes' 'info' "FILE_DATE: $FILE_DATE"
-		
 			if [ $FILE_DATE -gt $LAST_DATE ];then
 				echo "$K_ACTION_REEMPLAZO"
 			elif [ $FILE_DATE -eq $LAST_DATE ];then
 				echo "$K_ACTION_DUPLICADO"
 			else
-#				myLog 'fsoldes' 'info' "es anterior"
 				echo "$K_ACTION_ANTERIOR"
 			fi
 		fi
