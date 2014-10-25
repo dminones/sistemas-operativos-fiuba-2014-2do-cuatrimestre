@@ -1,10 +1,10 @@
 #!/bin/bash
-#. Logger
+. Logger
 
 _detectar_comando(){
 	if [ $# -lt 7 ] 
 	then
-		log $LOG_DIR $LOG_WHERE "ERR" "Its an error!! params!! :P"
+		log "$LOG_DIR" "$LOG_WHERE" "ERR" "Its an error!! params!! :P"
 		return 1
 	else
 		local COMMAND="$7"
@@ -27,7 +27,7 @@ _detectar_comando(){
 				mkdir $DEST_DIR
 				if [ $? -ne 0 ]
 				then
-					log $LOG_DIR $LOG_WHERE "ERR" "Cannot create destination directory"
+					log "$LOG_DIR" "$LOG_WHERE" "ERR" "Cannot create destination directory"
 					return 2
 				fi
 				APPEND_NUMBER=0
@@ -40,10 +40,10 @@ _detectar_comando(){
 		STATUS="$?"
 		if [ $STATUS -eq 0 ]
 		then
-			log $LOG_DIR $LOG_WHERE "INFO" "Its no an error!! :D"
+			log "$LOG_DIR" "$LOG_WHERE" "INFO" "Its no an error!! :D"
 			return 0
 		else
-			log $LOG_DIR $LOG_WHERE "ERR" "Its an error!! :P"
+			log "$LOG_DIR" "$LOG_WHERE" "ERR" "Its an error!! :P"
 			return 1
 		fi
 	fi
@@ -58,3 +58,4 @@ copiar(){
 	_detectar_comando "$@" "cp"
 	return "$?"
 }
+

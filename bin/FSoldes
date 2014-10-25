@@ -14,6 +14,7 @@
 #imports
 . Logger
 . CsvParser
+. utilidadArchivo
 
 #constants
 readonly K_ACTION_ALTA=1
@@ -32,8 +33,8 @@ start_paths(){
 	ACEPDIR="acepdir/"
 	BANCOS="bancos.dat"
 	BANCOS_FILE="$JOB_PATH$MAEDIR$BANCOS"
-	typeset LOG_DIR="logdir/"
-	typeset	LOG_FILE_NAME="FSoldes"
+	local LOG_DIR="logdir/"
+	local LOG_FILE_NAME="FSoldes"
 	LOG_FILE="$LOG_DIR$LOG_FILE_NAME"
 	ACEPDIR_PATH="$JOB_PATH$ACEPDIR"
 	PROCDIR="$ACEPDIR_PATH""proc/"
@@ -72,11 +73,11 @@ processFile(){
 	elif [ $ACTION -eq $K_ACTION_ANTERIOR ]; then
 		echo "es anterior"
 		myLog 'processFile' 'info' "Fecha del Archivo anterior a la existente. Se rechaza el archivo"
-		moveRejectedFile "$ACEPDIR_PATH$FILE"
+		moveRejectedFile "$FILE"
 	else
 		echo "es duplicado"
 		myLog 'processFile' 'info' "Archivo duplicado. Se rechaza el archivo"
-		moveRejectedFile "$ACEPDIR_PATH$FILE"
+		moveRejectedFile "$FILE"
 	fi
 }
 
@@ -117,21 +118,22 @@ processValidFile(){
 	myLog 'processValidFile' 'info' "Registro aceptados: $ACCEPTED_RECORDS"
 	myLog 'processValidFile' 'info' "Registro rechazados: $REJECTED_RECORDS"
 	
-	moveProcessedFile "$ACEPDIR_PATH$FILE"
+	#moveProcessedFile "$ACEPDIR_PATH$FILE"
+	moveProcessedFile "$FILE"
 	
 	updateSaldosTab "$BANCO" "$CODIGO_ENTIDAD" "$FECHA"
 }
 
-#1)fileName
+#$1:fileName
 moveProcessedFile(){
-	rm "$1" #por ahora elimina, dsp debe mover
-#	./mover.sh "$1" "$PROCDIR"
+#	rm "$1" #por ahora elimina, dsp debe mover
+	mover "$LOG_FILE" "moveProcessedFile" "proc" "$1" "$ACEPDIR_PATH" "$PROCDIR"
 }
 
 #1)fileName
 moveRejectedFile(){
-	rm "$1" #por ahora elimina, dsp debe mover
-	#	./mover.sh "$1" "$PROCDIR"
+#	rm "$1" #por ahora elimina, dsp debe mover
+	mover "$LOG_FILE" "moveRejectedFileFile" "rech" "$1" "$ACEPDIR_PATH" "$RECHDIR"
 }
 
 #$1:nombreEntidad,$2:codigoEntidad,$3:fechaSaldo
