@@ -31,6 +31,8 @@ log "$LOG_FILE" "$WHERE" "INFO" "Fin de Cdossier"
 }
 
 processAllFiles(){
+if [ -f $MAEDIR/saldos/saldos.lis ] 
+then
 	for FILE in `ls $ACEPDIR`;
 	do
 		if [ -f $ACEPDIR/$FILE ] 
@@ -52,6 +54,9 @@ processAllFiles(){
 			fi
 		fi
 	done
+else
+log "$LOG_FILE" "$WHERE" "ERR" "No existe el archivo Saldos.lis. No se puede ejecutar Cdossier." 
+fi
 }
 
 processFile(){
