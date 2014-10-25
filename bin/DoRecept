@@ -2,20 +2,97 @@
 #Procesa los archivos
 . Helpers
 
+bankExists(){
+  local NAME=$1
+  local BANCOS_FILE=$MAEDIR/bancos.dat
+
+  local LINEA=`grep "^$NAME" "$BANCOS_FILE"`
+
+  # Devuelve 1 si $LINEA esta vacia y 0 si no
+  [ -n "$LINEA" ]
+}
+
+camaraExists(){
+  local NAME=$1
+  local CAMARAS_FILE=$MAEDIR/camaras.dat
+
+  local LINEA=`grep "^$NAME" "$CAMARAS_FILE"`
+
+  # Devuelve 1 si $LINEA esta vacia y 0 si no
+  [ -n "$LINEA" ]
+}
+
+tribunalExists(){
+  local NAME=$1
+  local TRIBUNALES_FILE=$MAEDIR/pjn.dat
+
+  local LINEA=`grep "^$NAME" "$TRIBUNALES_FILE"`
+
+  # Devuelve 1 si $LINEA esta vacia y 0 si no
+  [ -n "$LINEA" ]
+}
+
+
+validDate(){
+  local DATE=$1
+
+  return 0
+}
+
+validFile(){
+  local file=$1
+  local filename=$(basename $file)
+
+  if [[ $filename == *@* ]] ; then
+    IFS="@" read camara tribunal <<< "$filename"
+
+    # Devuelve 0 si ambos son 0
+    if camaraExists $camara && tribunalExists $tribunal;then
+      return 0
+    fi
+  fi
+
+  if [[ $filename == [^@]*_* ]] ; then
+    IFS="_" read bank date <<< "$filename"
+
+    # Devuelve 0 si ambos son 0
+    if bankExists $bank && validDate $date;then return 0; fi
+  fi
+
+  return 1
+}
+
+executeIfNeeded(){
+  command=$1
+  files=$2
+
+  echo "$command"
+  if [[ -n $(ls $files 2>/dev/null) ]]; then
+    #initProcess $command
+    Log '$command'
+  fi
+}
+
 doCdossier() {
-  Log 'doCdossier'
-  #initProcess $CDOSSIER
+  local ACEPDIR_EXPEDIENTES=$ACEPDIR/*@*
+
+  executeIfNeeded $CDOSSIER $ACEPDIR_EXPEDIENTES
 }
 
 doFsoldes() {
-  Log 'doFsoldes'
-  #initProcess $FSOLDES
+  local ACEPDIR_BANCOS=$ACEPDIR/[^@]*_*
+
+  executeIfNeeded $FSOLDES $ACEPDIR_BANCOS
 }
 
 doProcessFile() {
-  file=$1
-  Log "Procesando $file ..."
-  # take action on each file. $f store current file name
+  local file=$1
+
+  if validFile $file; then
+    echo "mover "$file" a acepdid"
+  else
+    echo "mover "$file" a rechazdir"
+  fi
 }
 
 doRecept(){
