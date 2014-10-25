@@ -25,6 +25,7 @@ reduceFileIfNeeded(){
 
 log(){
 	typeset	JOB_PATH="../../../Documents/facultad/sistemasOperativos/tp/"
+#	local JOB_PATH=""
 	typeset EXTENSION=".log"
 
 	typeset FILE=$1
@@ -39,3 +40,4 @@ log(){
 	typeset MESSAGE="$DATETIME - $USER - $WHERE - $CODE - $DESCRIPTION"
 	echo "$MESSAGE" >> "$FILE_PATH"
 }
+

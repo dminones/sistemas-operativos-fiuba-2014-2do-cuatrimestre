@@ -39,10 +39,9 @@ start_paths(){
 	ACEPDIR_PATH="$JOB_PATH$ACEPDIR"
 	PROCDIR="$ACEPDIR_PATH""proc/"
 	RECHDIR="$JOB_PATH""rech/"
-	typeset SALDOS_LIS_FILE="saldos.lis"
-	typeset SALDOS_TAB_FILE="saldos.tab"
+	SALDOS_LIS_FILE="saldos.lis"
+	SALDOS_TAB_FILE="saldos.tab"
 	SALDOS_DIR="$MAEDIR_PATH""saldos/"
-	ANT_DIR="ant/"
 	SALDOS_TAB_FILE_PATH="$SALDOS_DIR$SALDOS_TAB_FILE"
 	SALDOS_LIS_FILE_PATH="$SALDOS_DIR$SALDOS_LIS_FILE"
 }
@@ -89,7 +88,7 @@ processValidFile(){
 	typeset FECHA=$4
 	typeset DELETED_RECORDS=0
 	
-	backupSaldosTab #to do
+	backupSaldos
 	
 	if [ $ACTION -eq $K_ACTION_REEMPLAZO ]; then
 		typeset DELETE_PATTERN="^[^;]*;$CODIGO_ENTIDAD;[^;]*;[^;]*$"
@@ -126,13 +125,11 @@ processValidFile(){
 
 #$1:fileName
 moveProcessedFile(){
-#	rm "$1" #por ahora elimina, dsp debe mover
 	mover "$LOG_FILE" "moveProcessedFile" "proc" "$1" "$ACEPDIR_PATH" "$PROCDIR"
 }
 
 #1)fileName
 moveRejectedFile(){
-#	rm "$1" #por ahora elimina, dsp debe mover
 	mover "$LOG_FILE" "moveRejectedFileFile" "rech" "$1" "$ACEPDIR_PATH" "$RECHDIR"
 }
 
@@ -145,8 +142,17 @@ updateSaldosTab(){
 	echo "$ROW" >> "$SALDOS_TAB_FILE_PATH"
 }
 
-backupSaldosTab(){
-	echo "		"
+backupSaldos(){
+	local ORIGEN="$SALDOS_DIR"
+	local DESTINO="$SALDOS_DIR""ant/"
+
+	if [ -f $SALDOS_TAB_FILE_PATH ]; then
+		copiar "$LOG_FILE" "backupSaldos" "ant" "$SALDOS_TAB_FILE" "$ORIGEN" "$DESTINO"
+	fi
+	
+	if [ -f $SALDOS_LIS_FILE_PATH ]; then
+		copiar "$LOG_FILE" "backupSaldos" "ant" "$SALDOS_LIS_FILE" "$ORIGEN" "$DESTINO"
+	fi
 }
 
 #$1:codigoEntidad,$2:fechaSaldo
@@ -229,7 +235,6 @@ getCBU(){
 
 processAllFiles(){
 	typeset FILES=`ls -B "$ACEPDIR_PATH"` #ignora archivos con ~
-#	savePrevious	
 	for FILE_ITEM in $FILES;
 	do
 		#evitar procesar carpetas
@@ -238,10 +243,6 @@ processAllFiles(){
 		fi
 	done
 }
-
-#savePrevious(){
-#	./mover.sh "$SALDOS_LIS_FILE_PATH" "$SALDOS_DIR$ANT_DIR"
-#}
 
 myLog(){
 	typeset WHERE=$1
