@@ -47,16 +47,16 @@ format_bank(){
 
 #$1:file
 processFile(){
-	typeset FILE=$1	
+	local FILE=$1	
 	echo "archivo a procesar: $GRUPO$ACEPDIR/$FILE"
-$GRUPO
+
 	myLog 'processFile' 'info' "Archivo a procesar:$FILE"
-	typeset BANCO=`echo $FILE | sed 's/_.*$//'`
-	typeset FECHA=`echo $FILE | sed 's/^.*_//'`
+	local BANCO=`echo $FILE | sed 's/_.*$//'`
+	local FECHA=`echo $FILE | sed 's/^.*_//'`
 	
 	format_bank "$BANCO"
 
-	typeset ACTION=$(curseOfAction "$CODIGO_ENTIDAD" "$FECHA")
+	local ACTION=$(curseOfAction "$CODIGO_ENTIDAD" "$FECHA")
 	if [ $ACTION -eq $K_ACTION_ALTA ] || [ $ACTION -eq $K_ACTION_REEMPLAZO ]; then
 		processValidFile "$ACTION" "$FILE" "$BANCO" "$FECHA"
 	elif [ $ACTION -eq $K_ACTION_ANTERIOR ]; then
