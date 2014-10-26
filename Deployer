@@ -1,5 +1,5 @@
 #!/bin/bash
-. Logger
+. bin/Logger
 # Constantes con las preguntas mas largas
 HEADER="TP SO7508 Segundo Cuatrimestre 2014. Tema E Copyright © Grupo 5"
 
