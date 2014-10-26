@@ -4,6 +4,7 @@
 GRUPO_PATH="$HOME/grupo05"
 GRUPO_CONF="$GRUPO/conf"
 ARCHIVO_CONF="$GRUPO/Deployer.conf"
+
 log(){
 LOGFILE= "$LOGDIR/log.txt"
 WHERE='Initier.sh'
