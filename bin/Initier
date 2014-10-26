@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#.Logger
+. Logger
 GRUPO_PATH="$HOME/grupo05"
 GRUPO_CONF="$GRUPO/conf"
 ARCHIVO_CONF="$GRUPO/Deployer.conf"
@@ -8,14 +8,15 @@ ARCHIVO_CONF="$GRUPO/Deployer.conf"
 readonly K_FALSE=0
 readonly K_TRUE=1
 
-log(){
-LOGFILE= "$LOGDIR/log.txt"
-WHERE='Initier.sh'
-WHEN= date #falta hora
-WHO=$USER
-WHAT=$1
-WHY=$(echo "$2"| sed 's-\\n-\n-')
-log $WHEN $WHERE $WHO $WHAT "$WHY"
+logMessage(){
+	#local BINDIR=`pwd`
+	#local JOB_PATH=$BINDIR/../
+	local LOG_DIR="logdir/"
+	local LOG_FILE="$LOG_DIR""Initier"
+	local WHERE=$1
+	local CODE=$2
+	local DESCRIPTION=$3
+	log "$LOG_FILE" "$WHERE" "$CODE" "$DESCRIPTION"
 }
 
 ambienteEstaSeteado(){
@@ -125,6 +126,7 @@ AMBIENTE_SETEADO=`ambienteEstaSeteado`
 if [ $AMBIENTE_SETEADO -eq $K_TRUE ];
 then
 	echo "Ambiente ya inicializado, si quiere reiniciar termine su sesion e ingrese nuevamente"
+	logMessage "Initier" "war" "Ambiente ya inicializado, si quiere reiniciar termine su sesion e ingrese nuevamente"
 else
 	echo "no inicializado"
 fi
