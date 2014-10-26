@@ -5,14 +5,14 @@ GRUPO_PATH="$HOME/grupo05"
 GRUPO_CONF="$GRUPO/conf"
 ARCHIVO_CONF="$GRUPO/Deployer.conf"
 
-readonly K_FALSE=0
-readonly K_TRUE=1
+K_FALSE=0
+K_TRUE=1
 
 logMessage(){
 	#local BINDIR=`pwd`
 	#local JOB_PATH=$BINDIR/../
-	local LOG_DIR="logdir/"
-	local LOG_FILE="$LOG_DIR""Initier"
+	#local LOG_DIR="logdir/"
+	local LOG_FILE="$LOGDIR""/Initier"
 	local WHERE=$1
 	local CODE=$2
 	local DESCRIPTION=$3
@@ -22,18 +22,18 @@ logMessage(){
 ambienteEstaSeteado(){
 	local SETEADO=$K_TRUE
 
-	GRUPO_PATH="variable"
-	GRUPO_CONF="variable"
-	ARCHIVO_CONF="variable"
-	BINDIR="variable"
-	MAEDIR="variable"
-	NOVEDIR="variable"
-	DATASIZE="variable"
-	ACEPDIR="variable"
-	REPODIR="variable"
-	RECHDIR="variable"
-	LOGDIR="variable"
-	DUPDIR="variable"
+#	GRUPO_PATH="variable"
+#	GRUPO_CONF="variable"
+#	ARCHIVO_CONF="variable"
+#	BINDIR="variable"
+#	MAEDIR="variable"
+#	NOVEDIR="variable"
+#	DATASIZE="variable"
+#	ACEPDIR="variable"
+#	REPODIR="variable"
+#	RECHDIR="variable"
+#	LOGDIR="variable"
+#	DUPDIR="variable"
 
 	if [ -z $GRUPO_PATH ] || [ -z $GRUPO_CONF ] || [ -z $ARCHIVO_CONF ] || [ -z $BINDIR ] || [ -z $MAEDIR ] || [ -z $NOVEDIR ] || [ -z $DATASIZE ] || [ -z $ACEPDIR ] || [ -z $REPODIR ] || [ -z $RECHDIR ] || [ -z $LOGDIR ] || [ -z $DUPDIR ];
 	then
@@ -45,26 +45,75 @@ ambienteEstaSeteado(){
 
 
 
-iniciarVariablesDeAmbiente(){  # falta todo
-IFS=$'\n'
-for record in $(<$ARCHIVO_CONF)
-do var
-	log INFO "TP SO7508 Segundo Cuatrimestre 2014. Tema E Copyright Grupo 05"
-	log INFO "Directorio Configuracion: $GRUPO_CONF (mostrar path y listar archivos)"
-	log INFO "Directorio Ejecutables: $BINDIR (mostrar path y listar archivos)"
-	log INFO "Directorio Tablas:$MAEDIR"
-	log INFO "Directorio Flujo de Novedades: $NOVEDIR"
-	log INFO "Directorio Novedades Aceptadas: $ACEPDIR"
-	log INFO "Directorio Pedidos y Informes de Salida: $REPODIR"
-	log INFO "Directorio Archivos Rechazados: $RECHDIR"
-	log INFO "Directorio de Log de Comandos: $LOGDIR"
-	log INFO "SubDirectorio de Resguardo de Archivos Duplicados: $DUPDIR"
-	log INFO "Estado del Sistema: Inicializado"
-done
+listarContenido(){
+	local FILES=`ls -B "$1"` #ignora archivos con ~
+	for FILE_ITEM in $FILES;
+	do
+		#evitar procesar carpetas
+		if [[ -f $1$FILE_ITEM ]]; then
+			echo "archivo: $FILE_ITEM"
+			logMessage "Initier" "info" "archivo: $FILE_ITEM"
+		fi
+	done
 }
 
+iniciarVariablesDeAmbiente(){
+	. "../conf/Deployer.conf"
+	
+	local MENSAJE="TP SO7508 Segundo Cuatrimestre 2014. Tema E Copyright © Grupo xx"
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+	
+	MENSAJE="Directorio Configuracion: $GRUPO$CONFDIR"
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+	listarContenido "$GRUPO$CONFDIR/"
+	
+	MENSAJE="Directorio Ejecutables: $BINDIR"
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+	listarContenido "$GRUPO$BINDIR/"
+	
+	MENSAJE="Directorio Datos Maestros y Tablas: $MAEDIR"
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+	listarContenido "$GRUPO$MAEDIR/"
+	
+	MENSAJE="Directorio Flujo de Novedades: $NOVEDIR"
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+	
+	MENSAJE="Directorio Novedades Aceptadas: $ACEPDIR"
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+	
+	MENSAJE="Directorio Pedidos e Informes de Salida: $REPODIR"
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+	
+	MENSAJE="Directorio Archivos Rechazados: $RECHDIR"
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+	
+	MENSAJE="Directorio de Logs de Comandos: $LOGDIR"
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+	
+	MENSAJE="SubDirectorio de Resguardo de Archivos Duplicados: $DUPDIR"
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+		
+	local PATH_SETEADO=`echo "$PATH" | grep -c "\:$GRUPO$BINDIR"`
+	echo "path seteado: $PATH_SETEADO"
+	if [ $PATH_SETEADO -eq 0 ];
+	then
+		PATH=$PATH\:"$GRUPO$BINDIR"
+		export PATH	
+	fi	
+	
+}
 
-cheackearInstalacionCompleta(){
+checkearInstalacionCompleta(){
 	local COMPLETA=$K_TRUE
 	
 	#variables hardcodeadas temporalmente
@@ -130,46 +179,35 @@ chequearPermisosArchivo(){
 	echo "$PERMISO_LECTURA"
 }
 
-darPermisos(){
-ACCESO="$BINDIR/*"
-for file in $ACCESO
-do
-	if [ "$file" != "ACCESO" ]
-	then 
-		chmod +x "$file"
-	fi
-done
-}
 
-arrancarRecept(){
-echo "Desea efectuar la activacion del Recept?" Si - No
-read respuesta
-if [ $respuesta = 'Si'];
-then
-	ejecutarRecept
-else 
-	log INFO "Recept no activado. Si quiere arrancarlo ejecute el comando ./Debut.sh"
-	echo "Recept no activado. Si quiere arrancarlo ejecute el comando ./Debut.sh"
-fi
-}
+#arrancarRecept(){
+#echo "Desea efectuar la activacion del Recept?" Si - No
+#read respuesta
+#if [ $respuesta = 'Si'];
+#then
+#	ejecutarRecept
+#else 
+#	log INFO "Recept no activado. Si quiere arrancarlo ejecute el comando ./Debut.sh"
+#	echo "Recept no activado. Si quiere arrancarlo ejecute el comando ./Debut.sh"
+#fi
+#}
 
-ejecutarRecept(){
-./Recept.sh &
-echo "Recept corriendo. Si quiere detenerlo ejecute el comando ./Stop.sh"
-log INFO "Recept corriendo bajo el no. : <Process Id de Recept>. Si quiere detenerlo ejecute el comando ./Stop.sh"
+#ejecutarRecept(){
+#./Recept.sh &
+#echo "Recept corriendo. Si quiere detenerlo ejecute el comando ./Stop.sh"
+#log INFO "Recept corriendo bajo el no. : <Process Id de Recept>. Si quiere detenerlo ejecute el comando ./Stop.sh"
 
-}
+#}
 
 
 #ejecucion
-logMessage "Initier" "info" "Inicio de Initier"
 AMBIENTE_SETEADO=`ambienteEstaSeteado`
 if [ $AMBIENTE_SETEADO -eq $K_TRUE ];
 then
 	echo "Ambiente ya inicializado, si quiere reiniciar termine su sesion e ingrese nuevamente"
 	logMessage "Initier" "war" "Ambiente ya inicializado, si quiere reiniciar termine su sesion e ingrese nuevamente"
 	
-	INSTALACION_COMPLETA=`cheackearInstalacionCompleta`
+	INSTALACION_COMPLETA=`checkearInstalacionCompleta`
 	if [ $INSTALACION_COMPLETA -eq $K_TRUE ];
 	then
 		echo "la instalacion esta completa"
@@ -178,10 +216,9 @@ then
 		#implementar rehacer instalacion
 	fi
 	
-else
-	echo "no inicializado"
+else #ambiente no esta seteado
+	iniciarVariablesDeAmbiente	
 fi
-logMessage "Initier" "info" "Fin de Initier"
 
 
 
