@@ -1,8 +1,8 @@
 #!/bin/bash
-. Logger
+. ./Logger
 
 _detectar_comando(){
-	if [ $# -lt 7 ] 
+	if [ $# -lt 7 ]
 	then
 		log "$LOG_DIR" "$LOG_WHERE" "ERR" "Its an error!! params!! :P"
 		return 1
@@ -58,4 +58,3 @@ copiar(){
 	_detectar_comando "$@" "cp"
 	return "$?"
 }
-
