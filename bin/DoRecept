@@ -39,8 +39,11 @@ validDate(){
 
   if [[ $DATE =~ ^[0-9]{4}[0-1]{1}[0-9]{1}[0-3]{1}[0-9]{1}$ ]]; then
     year=${DATE:0:4}
+    year=10#$year
     month=${DATE:4:2}
+    month=10#$month
     day=${DATE:6:8}
+    day=day#$month
   else
     return 1
   fi
@@ -94,6 +97,24 @@ validDate(){
   if [ $day -le 0 -o $day -gt $days ];
   then
       return 1
+  fi
+
+
+  #en este punto es una fecha válida
+  #verifico q es antes de hoy
+  HOY=`date +%Y%m%d`
+  echo "HOY "$HOY
+  echo "FECHA A VALIDAR "$DATE
+  DIFF=`expr $HOY - $DATE`
+  echo $DIFF
+
+  
+  if [ $DIFF -ge 0 ] && [ $DIFF -ge 0 ]; then
+    echo "VALIDA"
+    return 0
+  else
+    echo "INVALIDA"
+    return 1
   fi
 
   return 0
@@ -166,6 +187,8 @@ doProcessFile() {
 }
 
 doRecept(){
+
+
   NOVEDIR_FILES=$NOVEDIR/*
 
   SAVEIFS=$IFS
@@ -180,4 +203,5 @@ doRecept(){
   doCdossier
 }
 
-doRecept
+validDate "20140927"
+#doRecept
