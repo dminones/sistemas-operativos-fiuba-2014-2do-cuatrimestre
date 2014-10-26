@@ -404,7 +404,7 @@ then
 		if [ "$ACEPTO" == "SI" ]
 		then
 			echo_y_log INFO "Iniciando Instalación. Esta Ud. seguro? (SI - NO)"
-			local ACEPTO=$(leer_o_default "a")
+			ACEPTO=$(leer_o_default "a")
 			while [ "$ACEPTO" != "SI" -a "$ACEPTO" != "NO" ]
 			do
 			echo_y_log WARN "Respuesta Incorrecta. Escriba SI o NO."
