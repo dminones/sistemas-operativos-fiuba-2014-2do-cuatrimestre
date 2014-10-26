@@ -5,11 +5,10 @@
 K_FALSE=0
 K_TRUE=1
 
-AMBIENTE_SETEADO=`ambienteEstaSeteado`
-if [ $AMBIENTE_SETEADO -ne $K_TRUE ];
+checkearAmbiente
+if [ $? -eq $K_FALSE ];
 then
 	echo "Ambiente no inicializado" 
-	logError "Ambiente no inicializado"
 	exit 1
 fi
 
