@@ -1,27 +1,44 @@
 #!/bin/bash
 
-ARCHIVOCONF="$GRUPOCONF/Deployer.conf"
+#.Logger
+GRUPO_PATH="$HOME/grupo05"
+GRUPO_CONF="$GRUPO/conf"
+ARCHIVO_CONF="$GRUPO/Deployer.conf"
 log(){
 LOGFILE= "$LOGDIR/log.txt"
 WHERE='Initier.sh'
 WHEN= date #falta hora
 WHO=$USER
 WHAT=$1
-WHY=$2
+WHY=$(echo "$2"| sed 's-\\n-\n-')
+log $WHEN $WHERE $WHO $WHAT "$WHY"
 }
 
-verificarAmbiente(){ # falta comando
+verificarAmbiente(){
 AMBIENTE=false
-if [ -v ARCHIVOCONF -a -v BINDIR -a -v MAEDIR -a -v NOVEDIR -a -v DATASIZE -a -v ACEPDIR -a -v REPODIR -a -v RECHDIR -a -v LOGDIR -a -v DUPDIR]
-then
-
-AMBIENTE=true
+if [ -v GRUPO_PATH -a -v GRUPO_CONf -a -v ARCHIVO_CONF -a -v BINDIR -a -v MAEDIR -a -v NOVEDIR -a -v DATASIZE -a -v ACEPDIR -a -v REPODIR -a -v RECHDIR -a -v LOGDIR -a -v DUPDIR]
+then AMBIENTE=true
 fi
 export $AMBIENTE
 }
 
 iniciarVariablesDeAmbiente(){  # falta todo
+IFS=$'\n'
+for record in $(<$ARCHIVO_CONF)
+do var
+log INFO "TP SO7508 Segundo Cuatrimestre 2014. Tema E Copyright Grupo 05"
+log INFO "Directorio Configuracion: $GRUPO_CONF (mostrar path y listar archivos)"
+log INFO "Directorio Ejecutables: $BINDIR (mostrar path y listar archivos)"
+log INFO "Directorio Tablas:$MAEDIR"
+log INFO "Directorio Flujo de Novedades: $NOVEDIR"
+log INFO "Directorio Novedades Aceptadas: $ACEPDIR"
+log INFO "Directorio Pedidos y Informes de Salida: $REPODIR"
+log INFO "Directorio Archivos Rechazados: $RECHDIR"
+log INFO "Directorio de Log de Comandos: $LOGDIR"
+log INFO "SubDirectorio de Resguardo de Archivos Duplicados: $DUPDIR"
+log INFO "Estado del Sistema: Inicializado"
 }
+
 
 cheackearInstalacion(){
 instalacion="SI"
