@@ -93,7 +93,37 @@ cheackearInstalacionCompleta(){
 		logMessage "Initier" "war" "Falta el archivo pjn.dat. Instale nuevamente"
 	fi
 	
+	local ARCHIVO_PRUEBA="$MAEDIR/prueba"
+	if [ ! -f $ARCHIVO_PRUEBA ];
+	then
+		COMPLETA="$K_FALSE"
+		logMessage "Initier" "war" "Falta el archivo prueba. Instale nuevamente"
+	else
+		COMPLETA=`chequearPermisosArchivo "$ARCHIVO_PRUEBA"`
+		if [ $COMPLETA -eq $K_FALSE ];
+		then
+			logMessage "Initier" "war" "el archivo prueba no tiene permiso de lectura"	
+		fi
+	fi
+	
 	echo "$COMPLETA"
+}
+
+chequearPermisosArchivo(){
+	PERMISO_LECTURA=$K_TRUE
+	if [ ! -r $1 ];
+	then
+		#PERMISO_LECTURA=$K_FALSE
+		chmod +r "$1"
+	fi
+	
+#	if [ ! -r $1 ];
+#	then
+#		PERMISO_LECTURA=$K_FALSE
+#	fi
+	
+	echo "$PERMISO_LECTURA"
+	
 }
 
 darPermisos(){
@@ -141,6 +171,7 @@ then
 		echo "la instalacion esta completa"
 	else
 		echo "faltan cosas"
+		#implementar rehacer instalacion
 	fi
 	
 else
