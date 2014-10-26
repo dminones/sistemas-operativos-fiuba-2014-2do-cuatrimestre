@@ -20,34 +20,30 @@ logMessage(){
 }
 
 ambienteEstaSeteado(){
-local SETEADO=$K_TRUE
+	local SETEADO=$K_TRUE
 
-GRUPO_PATH="variable"
-GRUPO_CONF="variable"
-ARCHIVO_CONF="variable"
-BINDIR="variable"
-MAEDIR="variable"
-NOVEDIR="variable"
-DATASIZE="variable"
-ACEPDIR="variable"
-REPODIR="variable"
-RECHDIR="variable"
-LOGDIR="variable"
-DUPDIR="variable"
+	GRUPO_PATH="variable"
+	GRUPO_CONF="variable"
+	ARCHIVO_CONF="variable"
+	BINDIR="variable"
+	MAEDIR="variable"
+	NOVEDIR="variable"
+	DATASIZE="variable"
+	ACEPDIR="variable"
+	REPODIR="variable"
+	RECHDIR="variable"
+	LOGDIR="variable"
+	DUPDIR="variable"
 
-if [ -z $GRUPO_PATH ] || [ -z $GRUPO_CONF ] || [ -z $ARCHIVO_CONF ] || [ -z $BINDIR ] || [ -z $MAEDIR ] || [ -z $NOVEDIR ] || [ -z $DATASIZE ] || [ -z $ACEPDIR ] || [ -z $REPODIR ] || [ -z $RECHDIR ] || [ -z $LOGDIR ] || [ -z $DUPDIR ];
-then
-	SETEADO=$K_FALSE
-fi
+	if [ -z $GRUPO_PATH ] || [ -z $GRUPO_CONF ] || [ -z $ARCHIVO_CONF ] || [ -z $BINDIR ] || [ -z $MAEDIR ] || [ -z $NOVEDIR ] || [ -z $DATASIZE ] || [ -z $ACEPDIR ] || [ -z $REPODIR ] || [ -z $RECHDIR ] || [ -z $LOGDIR ] || [ -z $DUPDIR ];
+	then
+		SETEADO=$K_FALSE
+	fi
 
-echo "$SETEADO"
-
-#AMBIENTE=false
-#if [ -v GRUPO_PATH -a -v GRUPO_CONf -a -v ARCHIVO_CONF -a -v BINDIR -a -v MAEDIR -a -v #NOVEDIR -a -v DATASIZE -a -v ACEPDIR -a -v REPODIR -a -v RECHDIR -a -v LOGDIR -a -v #DUPDIR]
-#then AMBIENTE=true
-#fi
-#export $AMBIENTE
+	echo "$SETEADO"
 }
+
+
 
 iniciarVariablesDeAmbiente(){  # falta todo
 IFS=$'\n'
@@ -68,28 +64,36 @@ done
 }
 
 
-cheackearInstalacion(){
-instalacion="SI"
-ARCHIVOBANCOS="$MAEDIR/bancos.dat"
-if ! [-f "$ARCHIVOBANCOS"]
-	then export instalacion="NO"
-	log INFO "Falta el archivo bancos.dat. Instale nuevamente"
-	echo "Falta el archivo bancos.dat. Instale nuevamente"
-fi
+cheackearInstalacionCompleta(){
+	local COMPLETA=$K_TRUE
+	
+	#variables hardcodeadas temporalmente
+	local BINDIR=`pwd`
+	local JOB_PATH=$BINDIR/../
+	local MAEDIR="$JOB_PATH/maedir/"
+	
+	local ARCHIVO_BANCOS="$MAEDIR/bancos.dat"
+	if [ ! -f $ARCHIVO_BANCOS ];
+	then
+		COMPLETA="$K_FALSE"
+		logMessage "Initier" "war" "Falta el archivo bancos.dat. Instale nuevamente"
+	fi
 
-ARCHIVOCAMARAS="$MAEDIR/camaras.dat"
-if ! [-f "$ARCHIVOCAMARAS"]
-	then export instalacion="NO"
-	log INFO "Falta el archivo camaras.dat. Instale nuevamente"
-	echo "Falta el archivo camaras.dat. Instale nuevamente"
-fi
+	local ARCHIVO_CAMARAS="$MAEDIR/camaras.dat"
+	if [ ! -f $ARCHIVO_CAMARAS ];
+	then
+		COMPLETA="$K_FALSE"
+		logMessage "Initier" "war" "Falta el archivo camaras.dat. Instale nuevamente"
+	fi
 
-ARCHIVOPJN="$MAEDIR/pjn.dat"
-if ! [-f "$ARCHIVOPJN"]
-	then export instalacion="NO"
-	log INFO "Falta el archivo pjn.dat. Instale nuevamente"
-	echo "Falta el archivo pjn.dat. Instale nuevamente"
-fi
+	local ARCHIVO_PJN="$MAEDIR/pjn.dat"
+	if [ ! -f $ARCHIVO_PJN ];
+	then
+		COMPLETA="$K_FALSE"
+		logMessage "Initier" "war" "Falta el archivo pjn.dat. Instale nuevamente"
+	fi
+	
+	echo "$COMPLETA"
 }
 
 darPermisos(){
@@ -122,14 +126,29 @@ log INFO "Recept corriendo bajo el no. : <Process Id de Recept>. Si quiere deten
 
 }
 
+
+#ejecucion
+logMessage "Initier" "info" "Inicio de Initier"
 AMBIENTE_SETEADO=`ambienteEstaSeteado`
 if [ $AMBIENTE_SETEADO -eq $K_TRUE ];
 then
 	echo "Ambiente ya inicializado, si quiere reiniciar termine su sesion e ingrese nuevamente"
 	logMessage "Initier" "war" "Ambiente ya inicializado, si quiere reiniciar termine su sesion e ingrese nuevamente"
+	
+	INSTALACION_COMPLETA=`cheackearInstalacionCompleta`
+	if [ $INSTALACION_COMPLETA -eq $K_TRUE ];
+	then
+		echo "la instalacion esta completa"
+	else
+		echo "faltan cosas"
+	fi
+	
 else
 	echo "no inicializado"
 fi
+logMessage "Initier" "info" "Fin de Initier"
+
+
 
 
 #if[$AMBIENTE=false]
