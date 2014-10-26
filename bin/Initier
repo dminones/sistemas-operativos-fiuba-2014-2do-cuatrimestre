@@ -157,25 +157,20 @@ chequearPermisosArchivo(){
 }
 
 
-#arrancarRecept(){
-#echo "Desea efectuar la activacion del Recept?" Si - No
-#read respuesta
-#if [ $respuesta = 'Si'];
-#then
-#	ejecutarRecept
-#else 
-#	log INFO "Recept no activado. Si quiere arrancarlo ejecute el comando ./Debut.sh"
-#	echo "Recept no activado. Si quiere arrancarlo ejecute el comando ./Debut.sh"
-#fi
-#}
-
-#ejecutarRecept(){
-#./Recept.sh &
-#echo "Recept corriendo. Si quiere detenerlo ejecute el comando ./Stop.sh"
-#log INFO "Recept corriendo bajo el no. : <Process Id de Recept>. Si quiere detenerlo ejecute el comando ./Stop.sh"
-
-#}
-
+arrancarRecept(){
+	echo "Desea efectuar la activacion del Recept? Si - No" 
+	read respuesta
+	if [[ $respuesta = 'Si' ]];
+	then
+		local RESPUESTA=`Debut Recept`
+		logMessage "arrancarRecept" "info" "$RESPUESTA"
+		echo "$RESPUESTA"
+		echo "Recept corriendo. Si quiere detenerlo ejecute el comando Stop Recept"
+	else 
+		logMessage "arrancarRecept" "info" "Recept no activado. Si quiere arrancarlo ejecute el comando 'Debut Recept'"
+		echo "Recept no activado. Si quiere arrancarlo ejecute el comando 'Debut Recept'"
+	fi
+}
 
 #ejecucion
 AMBIENTE_SETEADO=`ambienteEstaSeteado`
@@ -195,27 +190,6 @@ then
 	
 else #ambiente no esta seteado
 	iniciarVariablesDeAmbiente	
+	arrancarRecept
 fi
 
-
-
-
-#if[$AMBIENTE=false]
-#	then
-#	echo "Inicilizando ambiente"
-#	inicializarVariablesDeAmbiente
-#	log INFO "Inicio de Initier"
-#	log INFO "Inicializando ambiente"
-#	checkearInstalacion
-#	if[$instalacion = "NO"]
-#		then log ERR"Instalacion incompleta.Falta un archivo. Por favor, verifique e intenten nuevamente."
-#		echo "Instalacion incompleta.Falta un archivo. Por favor, verifique e intenten nuevamente."	
-#		else
-#		darPermisos
-#		arrancarRecept
-#		fi
-#log ERR "Ambiente ya inicializado, si quiere reiniciar, termine su sesion e ingrese nuevamente."
-#echo "Ambiente ya inicializado, si quiere reiniciar, termine su sesion e ingrese nuevamente."
-#fi
-#log "Initier" "Informative" "Fin de Initier"
-#cerrarArchivoDeLogYTerminarProceso # falta todo
