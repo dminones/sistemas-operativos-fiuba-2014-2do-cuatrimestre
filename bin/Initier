@@ -111,6 +111,9 @@ iniciarVariablesDeAmbiente(){
 		export PATH	
 	fi	
 	
+	MENSAJE="Estado del Sistema: INICIALIZADO"
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
 }
 
 checkearInstalacionCompleta(){
