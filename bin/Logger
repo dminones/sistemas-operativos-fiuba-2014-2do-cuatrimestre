@@ -2,7 +2,7 @@
 ######
 #params:
 
-#1)filename
+#1)filepath
 #2)where
 #3)code
 #4)description
@@ -24,11 +24,7 @@ reduceFileIfNeeded(){
 }
 
 log(){
-	local BINDIR=`pwd`
-	local JOB_PATH=$BINDIR/../
-	local EXTENSION=".log"
-	local FILE=$1
-	local FILE_PATH="$JOB_PATH$FILE$EXTENSION"
+	local FILE_PATH="$1.log"
 	
 	reduceFileIfNeeded "$FILE_PATH"
 
