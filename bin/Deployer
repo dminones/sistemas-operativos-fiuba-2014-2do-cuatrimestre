@@ -28,9 +28,10 @@ echo_y_log()
 
 log()
 {
-	echo Log: $1 $2 "$3"
+#	echo Log: $1 $2 "$3"
 	# TODO usar el verdadero log
 	# bash log.sh $1 $2 $3
+	return 0
 }
 
 # Chequea si se inicio anteriormente la instalacion
@@ -123,6 +124,54 @@ preguntar_variables()
 			FIN=$FALSE
 		fi
 	done
+	instalar
+}
+
+# Crea los archivos y guarda la conf
+instalar(){
+	echo_y_log INFO "Creando Estructuras de directorio...."
+	echo_y_log INFO "BINDIR"
+	mkdir $GRUPO$BINDIR
+	echo_y_log INFO "MAEDIR"
+	mkdir $GRUPO$MAEDIR
+	echo_y_log INFO "MAEDIR/saldos"
+	mkdir $GRUPO$MAEDIR'/saldos'
+	echo_y_log INFO "MAEDIR/saldos/ant"
+	mkdir $GRUPO$MAEDIR'/saldos/ant'
+	echo_y_log INFO "NOVEDIR"
+	mkdir $GRUPO$NOVEDIR
+	echo_y_log INFO "ACEPDIR"
+	mkdir $GRUPO$ACEPDIR
+	echo_y_log INFO "ACEPDIR/proc"
+	mkdir $GRUPO$ACEPDIR'/proc'
+	echo_y_log INFO "REPODIR"
+	mkdir $GRUPO$REPODIR
+	echo_y_log INFO "REPODIR/ant"
+	mkdir $GRUPO$REPODIR'/ant'
+	echo_y_log INFO "RECHDIR"
+	mkdir $GRUPO$RECHDIR
+	echo_y_log INFO "LOGDIR"
+	mkdir $GRUPO$LOGDIR
+	echo_y_log INFO "Instalando Programas y Funciones"
+	# TODO
+	echo_y_log INFO "Instalando Archivos Maestros y Tablas"
+	# TODO
+	echo_y_log INFO "Actualizando la configuración del sistema"
+	local CONF_FILE=$GRUPO$CONFDIR'/Deployer.conf'
+	rm -f $CONF_FILE
+	touch $CONF_FILE
+	echo "GRUPO=$GRUPO" > $CONF_FILE
+	echo "CONFDIR=$CONFDIR" >> $CONF_FILE
+	echo "BINDIR=$BINDIR" >> $CONF_FILE
+	echo "MAEDIR=$MAEDIR" >> $CONF_FILE
+	echo "NOVEDIR=$NOVEDIR" >> $CONF_FILE
+	echo "DATASIZE=$DATASIZE" >> $CONF_FILE
+	echo "ACEPDIR=$ACEPDIR" >> $CONF_FILE
+	echo "REPODIR=$REPODIR" >> $CONF_FILE
+	echo "RECHDIR=$RECHDIR" >> $CONF_FILE
+	echo "LOGDIR=$LOGDIR" >> $CONF_FILE
+	echo "DUPDIR=$DUPDIR" >> $CONF_FILE
+	echo_y_log INFO "Instalación CONCLUIDA"
 }
 
 # Pregunta una variable y espera la respuesta
