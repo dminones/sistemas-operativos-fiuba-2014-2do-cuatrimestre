@@ -5,12 +5,11 @@
 
 SLEEP_TIME=10
 nroCiclo=0
-
-$BINDIR/DoRecept
+$BINDIR_PATH/DoRecept
 while [[ true ]]; do
 	Log "Recept ciclo nro."$nroCiclo
 
-	$BINDIR/DoRecept
+	$BINDIR_PATH/DoRecept
 	let nroCiclo++
 	sleep $SLEEP_TIME
 done

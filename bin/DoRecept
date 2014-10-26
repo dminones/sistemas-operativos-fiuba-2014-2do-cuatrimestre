@@ -5,7 +5,7 @@
 
 bankExists(){
   local NAME=$1
-  local BANCOS_FILE=$MAEDIR/bancos.dat
+  local BANCOS_FILE=$MAEDIR_PATH/bancos.dat
 
   local LINEA=`grep "^$NAME" "$BANCOS_FILE"`
 
@@ -15,7 +15,7 @@ bankExists(){
 
 camaraExists(){
   local NAME=$1
-  local CAMARAS_FILE=$MAEDIR/camaras.dat
+  local CAMARAS_FILE=$MAEDIR_PATH/camaras.dat
 
   local LINEA=`grep "^$NAME" "$CAMARAS_FILE"`
 
@@ -25,7 +25,7 @@ camaraExists(){
 
 tribunalExists(){
   local NAME=$1
-  local TRIBUNALES_FILE=$MAEDIR/pjn.dat
+  local TRIBUNALES_FILE=$MAEDIR_PATH/pjn.dat
 
   local LINEA=`grep "^$NAME" "$TRIBUNALES_FILE"`
 
@@ -175,24 +175,23 @@ executeIfNeeded(){
 }
 
 doCdossier() {
-  local ACEPDIR_EXPEDIENTES=$ACEPDIR/*@*
+  local ACEPDIR_EXPEDIENTES=$ACEPDIR_PATH/*@*
   executeIfNeeded $CDOSSIER $ACEPDIR_EXPEDIENTES
 }
 
 doFsoldes() {
-  local ACEPDIR_BANCOS=$ACEPDIR/[^@]*_*
+  local ACEPDIR_BANCOS=$ACEPDIR_PATH/[^@]*_*
   executeIfNeeded $FSOLDES $ACEPDIR_BANCOS
 }
 
 moveFile(){
-  local LOG_DIR=$LOGDIR$RECEPT_LOG_NAME
+  local LOG_DIR=$LOGDIR_PATH$RECEPT_LOG_NAME
   local LOG_NAME=$RECEPT_LOG_NAME
-  local DUP_DIR="/dup"
   local FILE_NAME=$(basename $1)
-  local DIR_1=$NOVEDIR
+  local DIR_1=$NOVEDIR_PATH
   local DIR_2=$2
 
-  mover "$LOG_DIR" "$RECEPT" "$DUP_DIR" "$FILE_NAME" "$DIR_1" "$DIR_2"
+  mover "$LOG_DIR_PATH" "$RECEPT" "$DUPDIR" "$FILE_NAME" "$DIR_1" "$DIR_2"
 }
 
 isExpedienteFile(){
@@ -216,24 +215,24 @@ doProcessFile() {
 	motivo=$(validFile $file)
 	if [ $? -eq "0" ]; then
 		Log "Archivo de $type aceptado: $file"
-		moveFile $file $ACEPDIR
+		moveFile $file $ACEPDIR_PATH
 	else
 		Log "Archivo rechazado: $file. Motivo: $motivo"
-		moveFile $file $RECHDIR
+		moveFile $file $RECHDIR_PATH
 	fi
 }
 
 doRecept(){
 
-  NOVEDIR_FILES=$NOVEDIR/*
+  NOVEDIR_FILES=$NOVEDIR_PATH/*
 
   SAVEIFS=$IFS
   IFS=$(echo -en "\n\b")
-  for FILE in $(ls -A $NOVEDIR)
+  for FILE in $(ls -A $NOVEDIR_PATH)
   do
-	if [ -f $NOVEDIR/$FILE ]
+	if [ -f $NOVEDIR_PATH/$FILE ]
 	then
-		doProcessFile $NOVEDIR/$FILE
+		doProcessFile $NOVEDIR_PATH/$FILE
 	fi
   done
   IFS=$SAVEIFS

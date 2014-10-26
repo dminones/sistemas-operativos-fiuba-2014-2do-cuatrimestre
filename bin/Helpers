@@ -1,5 +1,5 @@
 #!/bin/bash
-#. Logger
+. Logger
 
 pushd `dirname $0` > /dev/null
 BINDIR=`pwd`
@@ -10,19 +10,16 @@ RECEPT="Recept"
 FSOLDES="FSoldes"
 CDOSSIER="CDossier"
 
+LOGDIR_PATH=$GRUPO$LOGDIR
+NOVEDIR_PATH=$GRUPO$NOVEDIR
+ACEPDIR_PATH=$GRUPO$ACEPDIR
+RECHDIR_PATH=$GRUPO$RECHDIR
+MAEDIR_PATH=$GRUPO$MAEDIR
 
-PIDDIR=$BINDIR
-LOGDIR=$BINDIR"/../log"
-NOVEDIR=$BINDIR/../novedir
-ACEPDIR=$BINDIR/../acepdir
-RECHDIR=$BINDIR/../rechdir
-MAEDIR=$BINDIR/../maedir
+INITLOG=$LOGDIR_PATH"/ReceptInit"
 
-INITLOG=$LOGDIR"ReceptInit"
-
-RECEPT_PID_FILE=$PIDDIR"/RECEIPT_PID"
 RECEPT_LOG_NAME="Recept"
-RECEPT_LOG="$LOGDIR/$RECEPT_LOG_NAME"
+RECEPT_LOG="$LOGDIR_PATH/$RECEPT_LOG_NAME"
 
 ERROR="[ERR]"
 
@@ -44,21 +41,31 @@ getProcessPid(){
 
 
 logError(){
-	log $RECEPT_LOG $RECEPT [ERR] $1
+	log "$RECEPT_LOG" "$RECEPT" "[ERR]" "$1"
 }
 
 logInfo(){
-	log $RECEPT_LOG $RECEPT [INFO] $1
+	log "$RECEPT_LOG" "$RECEPT" "[INFO]" "$1"
 }
 
 logWarning(){
-	log $RECEPT_LOG $RECEPT [WARN] $1
+	log "$RECEPT_LOG" "$RECEPT" "[WARN]" "$1"
 }
 
 Log(){
 	logInfo $1
 }
 
+ambienteEstaSeteado(){
+	local SETEADO=$K_TRUE
+
+	if [ -z $GRUPO ] || [ -z $CONFDIR ] || [ -z $BINDIR ] || [ -z $MAEDIR ] || [ -z $NOVEDIR ] || [ -z $DATASIZE ] || [ -z $ACEPDIR ] || [ -z $REPODIR ] || [ -z $RECHDIR ] || [ -z $LOGDIR ] || [ -z $DUPDIR ];
+	then
+		SETEADO=$K_FALSE
+	fi
+
+	echo "$SETEADO"
+}
 
 # $1 Proceso a iniciar
 initProcess(){
@@ -92,9 +99,12 @@ initProcess(){
 }
 
 initForeground(){
-	$BINDIR/$1
+	$BINDIR_PATH/$1
 }
 
 initBackground(){
-	$BINDIR/$1 >$INITLOG 2>&1 < /dev/null &
+	$BINDIR_PATH/$1 >$INITLOG 2>&1 < /dev/null &
 }
+
+
+
