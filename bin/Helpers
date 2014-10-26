@@ -3,6 +3,7 @@
 
 pushd `dirname $0` > /dev/null
 BINDIR=`pwd`
+
 popd > /dev/null
 
 RECEPT="Recept"
@@ -11,17 +12,17 @@ CDOSSIER="CDossier"
 
 
 PIDDIR=$BINDIR
-LOGDIR=$BINDIR"/"
+LOGDIR=$BINDIR"/../logdir"
 NOVEDIR=$BINDIR/../novedir
 ACEPDIR=$BINDIR/../acepdir
 RECHDIR=$BINDIR/../rechdir
 MAEDIR=$BINDIR/../maedir
 
-INITLOG=$LOGDIR"ReceptInit.log"
+INITLOG=$LOGDIR"ReceptInit"
 
 RECEPT_PID_FILE=$PIDDIR"/RECEIPT_PID"
-RECEPT_LOG_NAME="Recept.log"
-RECEPT_LOG="$LOGDIR$RECEPT_LOG_NAME"
+RECEPT_LOG_NAME="Recept"
+RECEPT_LOG="$LOGDIR/$RECEPT_LOG_NAME"
 
 ERROR="[ERR]"
 
@@ -43,7 +44,8 @@ getProcessPid(){
 
 Log(){
 	#log $RECEPT_LOG $RECEPT $ERROR $1
-	echo $1" "$RECEPT" "$ERROR >> $RECEPT_LOG
+	log $RECEPT_LOG_NAME $RECEPT $ERROR $1
+	
 }
 
 

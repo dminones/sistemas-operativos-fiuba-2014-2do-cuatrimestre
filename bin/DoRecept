@@ -38,21 +38,21 @@ validDate(){
   local DATE=$1
 
   if [[ $DATE =~ ^[0-9]{4}[0-1]{1}[0-9]{1}[0-3]{1}[0-9]{1}$ ]]; then
-    year=${DATE:0:4}
-    month=${DATE:4:2}
-    day=${DATE:6:8}
+    year=$(echo ${DATE:0:4} | bc)
+    month=$(echo ${DATE:4:2} | bc)
+    day=$(echo ${DATE:6:8} | bc)
   else
     return 1
   fi
 
-  if [[ $month -gt 12 ]]; then
+  if [[ $month -gt "12" ]]; then
     return 1
   fi
 
 
   # if month is negative (<0) or greater than 12
   # then it is invalid month
-  if [ $month -le 0 -o $month -gt 12 ];
+  if [[ $month -le "0" ]]
   then
       return 1
   fi
@@ -94,6 +94,20 @@ validDate(){
   if [ $day -le 0 -o $day -gt $days ];
   then
       return 1
+  fi
+
+
+  #en este punto es una fecha válida
+  #verifico q es antes de hoy
+  HOY=$(date +%Y%m%d)
+  END_DATE=$(date +%Y%m%d -d "30 day ago")
+  DIFF=$(echo "$DATE<=$HOY&&$DATE>=$END_DATE"| bc)
+  
+  if [ $DIFF -eq 1 ]
+  then
+    return 0
+  else
+    return 1
   fi
 
   return 0
@@ -143,14 +157,14 @@ doFsoldes() {
 }
 
 moveFile(){
-  local LOG_DIR=$LOGDIR
+  local LOG_DIR=$LOGDIR$RECEPT_LOG_NAME
   local LOG_NAME=$RECEPT_LOG_NAME
-  local DUP_DIR=""
+  local DUP_DIR="/dup"
   local FILE_NAME=$(basename $1)
   local DIR_1=$NOVEDIR
   local DIR_2=$2
 
-  mover "$LOG_DIR" "$LOG_NAME" "$DUP_DIR" "$FILE_NAME" "$DIR_1" "$DIR_2"
+  mover "$LOG_DIR" "$RECEPT" "$DUP_DIR" "$FILE_NAME" "$DIR_1" "$DIR_2"
 }
 
 doProcessFile() {
@@ -166,13 +180,18 @@ doProcessFile() {
 }
 
 doRecept(){
+
+
   NOVEDIR_FILES=$NOVEDIR/*
 
   SAVEIFS=$IFS
   IFS=$(echo -en "\n\b")
-  for f in $NOVEDIR_FILES
+  for FILE in $(ls -A $NOVEDIR)
   do
-    doProcessFile $f
+	if [ -f $NOVEDIR/$FILE ]
+	then
+		doProcessFile $FILE
+	fi
   done
   IFS=$SAVEIFS
 
@@ -180,4 +199,5 @@ doRecept(){
   doCdossier
 }
 
+#validDate "20140931"
 doRecept

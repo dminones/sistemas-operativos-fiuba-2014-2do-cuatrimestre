@@ -1,6 +1,28 @@
 Trabajo Práctico de Sistemas Operativos
 ===============================================
 
+COMO COPIAR DESDE UN MEDIO EXTERNO EL INSTALABLE:
+1) Insertar el dispositivo de almacenamiento con el contenido del TP
+2) Crear en el directorio corriente un directorio de trabajo
+3) Copiar el archivo *.tgz en ese directorio 
+4) Descomprimir el *.tgz de manera de generar un *.tar
+5) Extraer los archivos del tar. 
+
+INSTALACION
+b) Instrucciones de instalación
+c) Que se requiere para poder instalar, Que nos deja la instalación y donde
+
+EJECUTAR CDOSSIER
+d) Cuáles son los primeros pasos para poder correr el paquete una vez instalado
+e) Que comprobaciones se pueden hacer para asegurar que todo está en condiciones para 
+empezar
+
+FRENAR EJECUCION DE COMANDOS
+f) Como frenar la ejecución de comandos 
+
+
+
+
 1)LOGGER
 En el script hay que incluir el archivo logger, y despues se llama a la funcion log
 ejemplo:
