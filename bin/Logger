@@ -10,12 +10,12 @@
 ######
 
 reduceFileIfNeeded(){
-	typeset FILE=$1
+	local FILE=$1
 	if [ -f $FILE ]; then #se fija si existe el archivo de log
 		#size en bytes
-		typeset SIZE_LIMIT=100000
-		typeset LINES_TO_DELETE='1,250d'
-		typeset SIZE=`wc -c < $FILE`
+		local SIZE_LIMIT=100000
+		local LINES_TO_DELETE='1,250d'
+		local SIZE=`wc -c < $FILE`
 		if [ $SIZE -ge $SIZE_LIMIT ]; then
 			sed -i "$LINES_TO_DELETE" "$FILE"
 			SIZE=`wc -c < $FILE`
@@ -24,20 +24,21 @@ reduceFileIfNeeded(){
 }
 
 log(){
-	typeset	JOB_PATH="../../../Documents/facultad/sistemasOperativos/tp/"
-#	local JOB_PATH=""
-	typeset EXTENSION=".log"
-
-	typeset FILE=$1
-	typeset FILE_PATH="$JOB_PATH$FILE$EXTENSION"
-
+	local BINDIR=`pwd`
+	local JOB_PATH=$BINDIR/../
+	local EXTENSION=".log"
+	local FILE=$1
+	local FILE_PATH="$JOB_PATH$FILE$EXTENSION"
+	
 	reduceFileIfNeeded "$FILE_PATH"
 
-	typeset WHERE=$2
-	typeset DATETIME=`date +'%Y/%m/%d %T'`
-	typeset CODE=$3
-	typeset DESCRIPTION=$4
-	typeset MESSAGE="$DATETIME - $USER - $WHERE - $CODE - $DESCRIPTION"
+	local WHERE=$2
+	local DATETIME=`date +'%Y/%m/%d %T'`
+	local CODE=$3
+	local DESCRIPTION=$4
+	local MESSAGE="$DATETIME - $USER - $WHERE - $CODE - $DESCRIPTION"
 	echo "$MESSAGE" >> "$FILE_PATH"
 }
+
+
 
