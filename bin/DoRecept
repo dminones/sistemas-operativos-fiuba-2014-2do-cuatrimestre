@@ -117,12 +117,32 @@ validFile(){
   local file=$1
   local filename=$(basename $file)
 
+  #El archivo no es vacio
+  if [ ! -s $file ]; then
+  	echo "Archivo vacio"
+  	return 1
+  fi
+  
+  #Si el archivo no es de texto return
+  if [ $(file -b -i $file | grep -c "text/plain") -eq 0 ]; then
+  	echo "Tipo de archivo invalido"
+  	return 1
+  fi
+
   if [[ $filename == *@* ]] ; then
     IFS="@" read camara tribunal <<< "$filename"
 
     # Devuelve 0 si ambos son 0
-    if camaraExists $camara && tribunalExists $tribunal;then
-      return 0
+    if ! camaraExists $camara; then
+    	echo "Camara no existe"
+    	return 1
+    fi
+    
+    if tribunalExists $tribunal;then
+      	return 0
+    else
+    	echo "Tribunal no existe"
+    	return 1
     fi
   fi
 
@@ -130,9 +150,18 @@ validFile(){
     IFS="_" read bank date <<< "$filename"
 
     # Devuelve 0 si ambos son 0
-    if bankExists $bank && validDate $date;then return 0; fi
+    if ! bankExists $bank; then
+    	echo "Banco no existe"
+    	return 1
+    fi
+    if validDate $date;then 
+    	return 0
+    else
+    	echo "Fecha invalida"
+    	return 1
+    fi
   fi
-
+  echo "Formato de nombre invalido"
   return 1
 }
 
@@ -141,8 +170,7 @@ executeIfNeeded(){
   local files=$2
 
   if [[ -n $(ls $files 2>/dev/null) ]]; then
-    #initProcess $command
-    Log $command
+    initProcess $command
   fi
 }
 
@@ -167,20 +195,35 @@ moveFile(){
   mover "$LOG_DIR" "$RECEPT" "$DUP_DIR" "$FILE_NAME" "$DIR_1" "$DIR_2"
 }
 
-doProcessFile() {
-  local file=$1
+isExpedienteFile(){
+	local filename=$(basename $1)
+	
+	if [[ $filename == *@* ]] ; then
+		return 0
+	fi
+	
+	return 1
+}
 
-  if validFile $file; then
-    Log "Mover "$file" a ACEPDIR"
-    moveFile $file $ACEPDIR
-  else
-    Log "Mover "$file" a RECHDIR"
-    moveFile $file $RECHDIR
-  fi
+doProcessFile() {
+	local file=$1
+	  	
+	type="Saldos"
+	if isExpedienteFile $file; then
+		type="Expedientes"
+	fi
+	
+	motivo=$(validFile $file)
+	if [ $? -eq "0" ]; then
+		Log "Archivo de $type aceptado: $file"
+		moveFile $file $ACEPDIR
+	else
+		Log "Archivo rechazado: $file. Motivo: $motivo"
+		moveFile $file $RECHDIR
+	fi
 }
 
 doRecept(){
-
 
   NOVEDIR_FILES=$NOVEDIR/*
 
@@ -190,7 +233,7 @@ doRecept(){
   do
 	if [ -f $NOVEDIR/$FILE ]
 	then
-		doProcessFile $FILE
+		doProcessFile $NOVEDIR/$FILE
 	fi
   done
   IFS=$SAVEIFS

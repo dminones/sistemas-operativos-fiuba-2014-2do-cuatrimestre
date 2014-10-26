@@ -12,7 +12,7 @@ CDOSSIER="CDossier"
 
 
 PIDDIR=$BINDIR
-LOGDIR=$BINDIR"/../logdir"
+LOGDIR=$BINDIR"/../log"
 NOVEDIR=$BINDIR/../novedir
 ACEPDIR=$BINDIR/../acepdir
 RECHDIR=$BINDIR/../rechdir
@@ -42,10 +42,21 @@ getProcessPid(){
 	fi
 }
 
+
+logError(){
+	log $RECEPT_LOG $RECEPT [ERR] $1
+}
+
+logInfo(){
+	log $RECEPT_LOG $RECEPT [INFO] $1
+}
+
+logWarning(){
+	log $RECEPT_LOG $RECEPT [WARN] $1
+}
+
 Log(){
-	#log $RECEPT_LOG $RECEPT $ERROR $1
-	log $RECEPT_LOG_NAME $RECEPT $ERROR $1
-	
+	logInfo $1
 }
 
 
@@ -75,7 +86,8 @@ initProcess(){
 			fi
 
 	else
-		echo "Recept corriendo bajo el no.: "$processPid
+		echo "$1 corriendo bajo el no.: "$processPid
+		Log "Invocacion de $1 pospuesta para el siguiente ciclo"
 	fi
 }
 
