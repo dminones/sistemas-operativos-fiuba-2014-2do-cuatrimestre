@@ -25,13 +25,13 @@ echo_y_log()
 	WHAT=$1
 	WHY=$2
 	echo "$WHY"
-	log "$DEPLOYER_LOG" "$WHERE" "$WHAT" "$WHY"
+	log "$GRUPO$DEPLOYER_LOG" "$WHERE" "$WHAT" "$WHY"
 }
 
 _internal_log(){
 	WHAT=$1
 	WHY=$2
-	log "$DEPLOYER_LOG" "$WHERE" "$WHAT" "$WHY"
+	log "$GRUPO$DEPLOYER_LOG" "$WHERE" "$WHAT" "$WHY"
 }
 
 #log()
