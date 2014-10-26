@@ -6,6 +6,7 @@ MAEDIR="../data"
 REPODIR="../demande"
 LOGDIR="../log"
 RECHDIR="../nok"
+DUP_DIR="/dupDir"
 
 LOG_FILE="$LOGDIR/Cdossier"
 WHERE="Cdossier"
@@ -13,6 +14,7 @@ WHERE="Cdossier"
 #Import
 . Logger
 . CsvParser
+. utilidadArchivo
 
 initLog(){
 log "$LOG_FILE" "$WHERE" "INFO" "Inicio de Cdossier"
@@ -40,13 +42,15 @@ then
 			log "$LOG_FILE" "$WHERE" "INFO" "Archivo a procesar: $FILE"
 			if [ -f $ACEPDIR/proc/$FILE ]
 			then
-				mv $ACEPDIR/$FILE $RECHDIR                     #MOVER ARCHIVO
+				#mv $ACEPDIR/$FILE $RECHDIR 
+				mover "$LOG_FILE" "$WHERE" "$DUP_DIR" "$FILE" "$ACEPDIR" "$RECHDIR"				
 				log "$LOG_FILE" "$WHERE" "WAR" "Archivo duplicado. Se rechaza el archivo." 
 			else
 				CHECK=`grep -v '^[^;]*;[^;]*;[^;]*;.*' $ACEPDIR/$FILE`
 				if [ "$CHECK" != "" ] 
 				then
-					mv $ACEPDIR/$FILE $RECHDIR             #MOVER ARCHIVO
+					#mv $ACEPDIR/$FILE $RECHDIR 
+					mover "$LOG_FILE" "$WHERE" "$DUP_DIR" "$FILE" "$ACEPDIR" "$RECHDIR"
 					log "$LOG_FILE" "$WHERE" "WAR" "Archivo con formato erroneo. Se rechaza el archivo." 
 				else
 					processFile "$FILE"
@@ -63,10 +67,7 @@ processFile(){
 
 if [ -f $REPODIR/exp_output ] 
 then		
-	cp $REPODIR/exp_output $REPODIR/exp_outputTEMP
-	mv $REPODIR/exp_output $REPODIR/ant       #MOVER ARCHIVO
-	cp $REPODIR/exp_outputTEMP $REPODIR/exp_output
-	rm $REPODIR/exp_outputTEMP 
+	copiar "$LOG_DIR" "$LOG_NAME" "$DUP_DIR" "exp_output" "$REPODIR" "$REPODIR/ant"
 fi
 
 CAMPO2=`echo $1 | sed 's/@.*//'` #CAMARA
@@ -87,7 +88,8 @@ log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros ignorados: $IGNORADOS"
 log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros reemplazados: $REEMPLAZADOS"
 log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros agregados: $AGREGADOS"
 
-mv $ACEPDIR/$1 $ACEPDIR/proc                                           #MOVER ARCHIVO
+#mv $ACEPDIR/$1 $ACEPDIR/proc                        
+mover "$LOG_FILE" "$WHERE" "$DUP_DIR" "$1" "$ACEPDIR" "$ACEPDIR/proc"
 
 }
 
