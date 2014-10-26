@@ -365,10 +365,10 @@ REPODIR=/demande
 RECHDIR=/nok
 LOGDIR=/log
 DUPDIR=/dup
-DEPLOYER_LOG=$CONFDIR/Deployer.log
+DEPLOYER_LOG=$CONFDIR/Deployer
 
 echo_y_log INFO "Inicio de Ejecucion de Deployer"
-echo_y_log INFO "Log de la instalacion: $DEPLOYER_LOG"
+echo_y_log INFO "Log de la instalacion: $DEPLOYER_LOG.log"
 echo_y_log INFO "Directorio predefinido de Configuración: $CONFDIR"
 checkear_instalacion
 if [ $TRUE -eq $? ]
