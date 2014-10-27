@@ -173,7 +173,7 @@ arrancarRecept(){
 }
 
 #ejecucion
-AMBIENTE_SETEADO=$(checkearAmbiente)
+AMBIENTE_SETEADO=$(./checkearAmbiente)
 if [ $AMBIENTE_SETEADO -eq $K_TRUE ];
 then
 	echo "Ambiente ya inicializado, si quiere reiniciar termine su sesion e ingrese nuevamente"

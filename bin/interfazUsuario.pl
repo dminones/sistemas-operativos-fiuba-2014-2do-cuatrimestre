@@ -82,8 +82,8 @@ sub mostrarArchivosRepodir() {
 	}
 	
 	foreach (@files){
-		if($_ ne "." && $_ ne ".."){
-			print $_."\n";
+		if($_ ne "." && $_ ne ".." && (-f $directorio.$_)){
+		  print $_."\n";
 		}
 	}
 }
@@ -276,7 +276,6 @@ sub deseaFiltrarSaldo(){
 sub preguntarFiltros(){
 	my(%expedientes) = @_;
 	my %exp;
-	open(SALIDA,">salida.dat");
 	
 	my $consulta = "Consulta:  ";	
 	my $return = &deseaFiltrar("expediente");
@@ -405,6 +404,7 @@ sub deseaMismoArchivo(){
 sub seleccionarPedido() {
 	my($option);
 	$option = "\n";
+	system("clear");
 	while($option ne "0"){
 		print "Tipos de pedido\n";
 		print "\n";
@@ -415,7 +415,7 @@ sub seleccionarPedido() {
 		print "5- Pedido por nivel de urgencia de 0 dias\n";
 		print "6- Pedido por nivel de urgencia de 1 dias\n";
 		print "7- Pedido por nivel de urgencia de 2 dias\n";
-		print "9- Pedido por nivel de urgencia de 4 dias\n";		
+		print "8- Pedido por nivel de urgencia de 4 dias\n";		
 		print "\n";
 		print "Seleccione el tipo de pedido. Pueden ser uno, varios o todos. El formato es ped1,ped2,...,pedN ";
 		print "En el caso de no seleccionar nada se tomara como que se seleccionaron todos.\n";
@@ -435,16 +435,21 @@ sub generarPedido(){
 	my %exp4;
 	my %exp5;
 	my %exp6;
+	
+	my %expAcumulado;
+	my %expTemporal;
+	
 	foreach (@opciones){
-		print $_."\n";
 		given($_){
-			when("1") {  %exp = &filtraPorAccion("PEDIDO URGENTE EMBARGAR CON CBU INFORMADA",%expedientes);
-				  return %exp;}
+			when("1") {
+			  %exp = &filtraPorAccion("PEDIDO URGENTE EMBARGAR CON CBU INFORMADA",%expedientes);
+				  %expTemporal = (%expAcumulado,%exp);
+				  }
 			when("2") {  %exp = &filtraPorAccion("ESPERAR 48 HORAS PARA HACER RECLAMO CON CBU INFORMADA",%expedientes);
-				  return %exp;
+				  %expTemporal = (%expAcumulado,%exp);
 			}
 			when("3") {  %exp = &filtraPorAccion("PEDIDO URGENTE PARA LIBERAR CUENTA",%expedientes);
-				  return %exp;
+				  %expTemporal = (%expAcumulado,%exp);
 			}
 			when("4") { %exp1 = &filtraPorAccion("PEDIDO URGENTE ASIGNAR NUEVA CBU POR CBU INCORRECTA",%expedientes);
 				  %exp2 = &filtraPorAccion("PEDIDO ESTÁNDAR DE ASIGNACION DE CUENTA",%expedientes);
@@ -453,7 +458,7 @@ sub generarPedido(){
 				  %exp5 = (%exp1,%exp2);
 				  %exp6 = (%exp3,%exp4);
 				  %exp1 = (%exp5,%exp6);
-				  return %exp1;
+				  %expTemporal = (%expAcumulado,%exp1);
 				  
 			}
 			when("5") { %exp1 = &filtraPorAccion("PEDIDO URGENTE EMBARGAR CON CBU INFORMADA",%expedientes);
@@ -461,21 +466,23 @@ sub generarPedido(){
 				  %exp2 = &filtraPorAccion("PEDIDO URGENTE ASIGNAR NUEVA CBU POR CBU INCORRECTA",%expedientes);
 				  %exp5 = (%exp1,%exp2);
 				  %exp6 = (%exp3,%exp5);
-				  return %exp6;
+				  %expTemporal = (%expAcumulado,%exp6);
 			}
 			when("6") { %exp1 = &filtraPorAccion("PEDIDO ESTÁNDAR DE ASIGNACION DE CUENTA",%expedientes);
-				  return %exp1;
+				  %expTemporal = (%expAcumulado,%exp1);
 			}
 			when("7") { %exp1 = &filtraPorAccion("ESPERAR 48 HORAS PARA RECLAMAR ASIGNACION DE CUENTA",%expedientes);
 				  %exp2 = &filtraPorAccion("ESPERAR 48 HORAS PARA HACER RECLAMO CON CBU INFORMADA",%expedientes);
 				  %exp5 = (%exp1,%exp2);
-				  return %exp5;
+				  %expTemporal = (%expAcumulado,%exp5);
 			}
 			when("8") { %exp1 = &filtraPorAccion("ESPERAR 96 HORAS PARA RECLAMAR ASIGNACION DE CUENTA",%expedientes); 
-				  return %exp1;
+				  %expTemporal = (%expAcumulado,%exp1);
 			}
 		}
+		%expAcumulado = %expTemporal;
 	}
+	return %expAcumulado;
 }
 
 sub generarMensajes() {
@@ -486,6 +493,8 @@ sub generarMensajes() {
 	foreach $key (keys(%exp)){
 		&printMensaje($key,$salida,%exp);
 	}
+	print "Presione una tecla para continuar\n";
+	<STDIN>;
 }
 
 sub printMensaje() {
@@ -502,7 +511,6 @@ sub printMensaje() {
 		when("ESPERAR 96 HORAS PARA RECLAMAR ASIGNACION DE CUENTA") { &print96Asginacion($salida,$key,$exp{$key}); }
 	
 	}
-	<STDIN>;
 }
 
 sub deseaGuardarPedidos(){
@@ -510,7 +518,7 @@ sub deseaGuardarPedidos(){
 	while($stdin ne "S" && $stdin ne "N" && $stdin ne "s" && $stdin ne "n"){
 		system("clear");
 		print "\n";
-		print "Desea guaardar la consulta? (S/N):\n";
+		print "Desea guardar la consulta? (S/N):\n";
 		$stdin = <STDIN>;
 		chomp($stdin);
 		if($stdin eq "S" || $stdin eq "s"){
@@ -543,7 +551,7 @@ sub printEmbargo(){
 	if($salida eq ""){
 		print $result;
 	} else {
-		open(SALIDA,">$repodir$salida");
+		open(SALIDA,">>$repodir$salida");
 		print SALIDA $result;
 		close(SALIDA);
 	}
@@ -563,7 +571,7 @@ sub printReclamo48CBU(){
 	if($salida eq ""){
 		print $result;
 	} else {
-		open(SALIDA,">$repodir$salida");
+		open(SALIDA,">>$repodir$salida");
 		print SALIDA $result;
 		close(SALIDA);
 	}
@@ -582,7 +590,7 @@ sub printLiberacion(){
 	if($salida eq ""){
 		print $result;
 	} else {
-		open(SALIDA,">$repodir$salida");
+		open(SALIDA,">>$repodir$salida");
 		print SALIDA $result;
 		close(SALIDA);
 	}
@@ -600,7 +608,7 @@ sub printAsginacionCBUIncorrecta(){
 	if($salida eq ""){
 		print $result;
 	} else {
-		open(SALIDA,">$repodir$salida");
+		open(SALIDA,">>$repodir$salida");
 		print SALIDA $result;
 		close(SALIDA);
 	}
@@ -618,7 +626,7 @@ sub printEstandarAsginacion(){
 	if($salida eq ""){
 		print $result;
 	} else {
-		open(SALIDA,">$repodir$salida");
+		open(SALIDA,">>$repodir$salida");
 		print SALIDA $result;
 		close(SALIDA);
 	}
@@ -636,7 +644,7 @@ sub print48Asginacion(){
 	if($salida eq ""){
 		print $result;
 	} else {
-		open(SALIDA,">$repodir$salida");
+		open(SALIDA,">>$repodir$salida");
 		print SALIDA $result;
 		close(SALIDA);
 	}
@@ -654,7 +662,7 @@ sub print96Asginacion(){
 	if($salida eq ""){
 		print $result;
 	} else {
-		open(SALIDA,">$repodir$salida");
+		open(SALIDA,">>$repodir$salida");
 		print SALIDA $result;
 		close(SALIDA);
 	}
@@ -722,7 +730,6 @@ sub getBanco(){
 	my ($CBU) = @_;
 	
 	my $cod = substr($CBU,0,3);
-	print "COD: ".$cod."\n";
 	
 	open (ENTRADA,"<$maedir/bancos.dat");
 	while($linea = <ENTRADA>){
@@ -732,6 +739,26 @@ sub getBanco(){
 		}		
 	}
 	return "";
+}
+
+sub mostrarAyuda(){
+  system("clear");
+  print "\n";
+  print "AYUDA:\n";
+  print "\n";
+  print "1- Esta opcion representa a los informes. Cada registro del informe representa un\n";
+  print "expediente, el cual podra ser filtrado por distintas caracteristicas. Estos \n";
+  print "informes finalmente podran ser usados para la ejecucion de los pedidos.\n";
+  print "\n";
+  print "2- Esta opcion es para la ejecucion de los distintos pedidos en base al archivo de \n";
+  print "expedientes.\n";
+  print "\n";
+  print "En ambos casos se puede elegir el modo de presentacion, ya sea imprimir por pantalla o guardarlo en un archivo.\n";
+  print "\n";
+  print "Presione una tecla para volver al menu de inicio...\n";
+  <STDIN>;
+  
+  
 }
 
 

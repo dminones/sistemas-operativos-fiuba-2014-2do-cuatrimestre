@@ -32,6 +32,11 @@ run(){
 	then
 		echo_y_log "Invocacion de $1 pospuesta para el siguiente ciclo"
 	else
+		if [ "$1" == "$LISTE" ]
+		then
+		  return
+		fi
+		
 		if [ $CHILD_PID -ne 0 ]
 		then 
 			echo_y_log "$1 corriendo bajo el nro.: $CHILD_PID"

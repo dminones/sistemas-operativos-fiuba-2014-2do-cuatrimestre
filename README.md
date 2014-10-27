@@ -6,8 +6,9 @@ COMO COPIAR DESDE UN MEDIO EXTERNO EL INSTALABLE:
 
 1) Insertar el dispositivo de almacenamiento con el contenido del TP
 2) Crear en el directorio corriente un directorio de trabajo
-3) Copiar el archivo grupo05.tgz en ese directorio 
-4) Ejecutar: tar -zxvf grupo05.tgz
+3) Copiar el archivo grupo05.tgz en ese directorio
+4) Ir al directorio de trabajo
+5) Ejecutar: tar -zxvf grupo05.tgz
 
 INSTALACION:
 
@@ -20,12 +21,19 @@ Para instalar, desde la consola:
 
 1) Ir al directorio de trabajo
 2) Ir a la carpeta "tp"
-3) Ejecutar: ./Deployer
-IMPORTANTE: Todos los directorios que se piden son relativos al directorio de trabajo 
+
+cd $grupo/tp
+
+3) Ejecutar Deployer
+IMPORTANTE: Todos los directorios que se piden son relativos al directorio de trabajo
+
+./Deployer
+
 4) Puede pasar algunos de los siguentes:
 4.1) Instalacion Completa: El script se cierra
 4.2) Instalacion Incompleta: Decidir si se continua la instalacion, sigue en el punto 8
 4.3) Instalacion Inexistente: Sigue en el punto siguente
+
 5) Aceptar términos y condiciones
 6) Definir directorios y variables cuando lo pida
 7) Confirmar estructura de directorios (sino se confirma vuelve al punto 6)
@@ -36,8 +44,17 @@ PARA EJECUTAR INITIER:
 Desde la consola:
 
 1) Ir al directorio de trabajo
+
+cd $grupo/
+
 2) Ir al directorio de instalación de los ejecutables
-3) Ejecutar: . ./Initier
+
+cd $grupo/bin
+
+3) Ejecutar Initier
+
+. ./Initier
+
 4) Decidir si quiere ejecutar Recept
 
 PARA EJECUTAR RECEPT:
@@ -78,12 +95,14 @@ Desde la consola:
 
 1) Ir al directorio de trabajo
 2) Ir al directorio de instalación de los ejecutables
-3) Ejecutar: Debut "Liste.pl"
+3) Ejecutar Liste
+
+Debut "Liste.pl"
 
 Que se requiere para poder instalar, Que nos deja la instalación y donde
 
 d) Cuáles son los primeros pasos para poder correr el paquete una vez instalado
-e) Que comprobaciones se pueden hacer para asegurar que todo está en condiciones para 
+e) Que comprobaciones se pueden hacer para asegurar que todo está en condiciones para
 empezar
 
 1)LOGGER
@@ -110,7 +129,7 @@ Hay que importarlo, y despues tiene dos metodos
 
 ejemplos:
 . CsvParser
-FORMAT_CBU=`getLastCsvField "$LINEA"`	
+FORMAT_CBU=`getLastCsvField "$LINEA"`
 CODIGO_ENTIDAD=`getCsvFieldNumber "$LINEA" 2`
 
 3) Ayuda de archivos

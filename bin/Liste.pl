@@ -45,18 +45,23 @@ while ($stdin != 0){
 					%expedientes = &getExpedientesPedido;
 				}
 				$param = &seleccionarPedido;
-				print $param;
 				%exp = &generarPedido($param,%expedientes);
 				
 				&generarMensajes(%exp);
+				
+				$fin = &deseaContinuar();
+				if($fin eq "0"){
+					$mismoArchivo = &deseaMismoArchivo();
+				}
 			}
 			$stdin = 0;
 		}
 
 	}
 		
-	if ($stdin == 4){	
-		# mostrarAyuda();	
+	if ($stdin == 3){	
+		&mostrarAyuda();
+		next;
 	} 
 	
 	print "Ha llegado a su fin.\n";  
