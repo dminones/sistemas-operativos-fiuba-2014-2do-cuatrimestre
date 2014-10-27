@@ -1,0 +1,178 @@
+#!/bin/bash
+
+#Import
+. Logger
+. CsvParser
+. utilidadArchivo
+
+#Variables
+LOG_FILE="$GRUPO$LOGDIR/Cdossier"
+WHERE="Cdossier"
+
+initLog(){
+log "$LOG_FILE" "$WHERE" "INFO" "Inicio de Cdossier"
+log "$LOG_FILE" "$WHERE" "INFO" "Archivos de expedientes aceptados:"
+for FILE in `ls $GRUPO$ACEPDIR | grep "^[^@]*@.[^@]*"` 
+do
+	if [ -f $GRUPO$ACEPDIR/$FILE ] 
+	then
+		log "$LOG_FILE" "$WHERE" "INFO" "$FILE"
+		echo $FILE
+	fi
+done
+}
+
+closeLog(){
+log "$LOG_FILE" "$WHERE" "INFO" "Fin de Cdossier"
+}
+
+processAllFiles(){
+if [ -f $GRUPO$MAEDIR/saldos/saldos.lis ] 
+then
+	for FILE in `ls $GRUPO$ACEPDIR`;
+	do
+		if [ -f $GRUPO$ACEPDIR/$FILE ] 
+		then	
+			log "$LOG_FILE" "$WHERE" "INFO" "Archivo a procesar: $FILE"
+			if [ -f $GRUPO$ACEPDIR/proc/$FILE ]
+			then
+				mover "$LOG_FILE" "$WHERE" "$DUPDIR" "$FILE" "$GRUPO$ACEPDIR" "$GRUPO$RECHDIR"				
+				log "$LOG_FILE" "$WHERE" "WAR" "Archivo duplicado. Se rechaza el archivo." 
+			else
+				CHECK=`grep -v '^[^;]*;[^;]*;[^;]*;.*' $GRUPO$ACEPDIR/$FILE`
+				if [ "$CHECK" != "" ] 
+				then
+					mover "$LOG_FILE" "$WHERE" "$DUPDIR" "$FILE" "$GRUPO$ACEPDIR" "$GRUPO$RECHDIR"
+					log "$LOG_FILE" "$WHERE" "WAR" "Archivo con formato erroneo. Se rechaza el archivo." 
+				else
+					processFile "$FILE"
+				fi
+			fi
+		fi
+	done
+else
+log "$LOG_FILE" "$WHERE" "ERR" "No existe el archivo Saldos.lis. No se puede ejecutar Cdossier." 
+fi
+}
+
+processFile(){
+
+if [ -f $GRUPO$REPODIR/exp_output ] 
+then		
+	copiar "$LOG_DIR" "$LOG_NAME" "$DUPDIR" "exp_output" "$GRUPO$REPODIR" "$GRUPO$REPODIR/ant"
+fi
+
+CAMPO2=`echo $1 | sed 's/@.*//'` #CAMARA
+CAMPO3=`echo $1 | sed 's/[^@]*@\([^@]*\).*/\1/'` #TRIBUNAL
+
+LEIDOS=0
+IGNORADOS=0
+REEMPLAZADOS=0
+AGREGADOS=0
+
+	while read LINE;
+	do
+		processLine "$LINE";
+	done < "$GRUPO$ACEPDIR/$1"
+
+log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros leídos: $LEIDOS"
+log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros ignorados: $IGNORADOS"
+log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros reemplazados: $REEMPLAZADOS"
+log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros agregados: $AGREGADOS"
+
+mover "$LOG_FILE" "$WHERE" "$DUPDIR" "$1" "$GRUPO$ACEPDIR" "$GRUPO$ACEPDIR/proc"
+
+}
+
+getSaldo(){ 
+
+DATA=""
+if [ ${#1} -eq 22 ] 
+then
+	DATA=`grep '^[^;]*;[^;]*;'$1'.*' $GRUPO$MAEDIR/saldos/saldos.lis`
+	if [ "$DATA" != "" ] 
+	then
+		SALDO=`getCsvFieldNumber "$DATA" 4`
+		echo $SALDO
+	fi
+fi
+}
+
+processLine(){
+
+LEIDOS=`expr $LEIDOS + 1`
+
+CAMPO1=`getCsvFieldNumber "$1" 2` #EXPEDIENTE 
+CAMPO4=`getCsvFieldNumber "$1" 1` #CARATULA 
+CAMPO5=`getCsvFieldNumber "$1" 3` #ESTADO INFORMATIVO
+CAMPO6=`getCsvFieldNumber "$1" 4 | sed 's/\r//g'` #CBU	
+CAMPO7=""
+CAMPO8=""
+
+if [ "$CAMPO5" = "CUMPLIMIENTO" ] 
+then
+	CAMPO8="PEDIDO URGENTE PARA LIBERAR CUENTA"
+else
+	if [ "$CAMPO6" = "" ]
+	then
+		if [ "$CAMPO5" = "SIN CUENTA ASOCIADA" ]
+		then
+			CAMPO8="PEDIDO ESTANDAR DE ASIGNACION DE CUENTA"
+		else
+			if [ "$CAMPO5" = "EN GESTION" ] || [ "$CAMPO5" = "REMITIDO" ]
+			then
+				CAMPO8="ESPERAR 48 HORAS PARA RECLAMAR ASIGNACION DE CUENTA"
+			else
+				if [ "$CAMPO5" = "A DESPACHO" ] || [ "$CAMPO5" = "EN CASILLERO" ]
+				then
+					CAMPO8="ESPERAR 96 HORAS PARA RECLAMAR ASIGNACION DE CUENTA"
+				else
+					IGNORADOS=`expr $IGNORADOS + 1`	
+				fi
+			fi
+		fi
+
+	else
+		if [ ${#CAMPO6} -ne 22 ] 
+		then
+			CAMPO8="PEDIDO URGENTE ASIGNAR NUEVA CBU POR CBU INCORRECTA"
+		else
+			CAMPO7=`getSaldo "$CAMPO6"`
+			if [ "$CAMPO7" != "" ] 
+			then
+				CAMPO8="PEDIDO URGENTE EMBARGAR CON CBU INFORMADA"
+			else
+				CAMPO8="ESPERAR 48 HORAS PARA HACER RECLAMO CON CBU INFORMADA"
+			fi
+		fi
+	fi
+fi
+if [ "$CAMPO8" != "" ]	
+	then
+	NEW=`echo $CAMPO1";"$CAMPO2";"$CAMPO3";"$CAMPO4";"$CAMPO5";"$CAMPO6";"$CAMPO7";"$CAMPO8`
+	if [ -f $GRUPO$REPODIR/exp_output ] 
+		then	
+			HEAD=`echo $CAMPO1";"$CAMPO2";"$CAMPO3`
+			FOUND=""
+			FOUND=`grep -n "$HEAD" $GRUPO$REPODIR/exp_output`
+			NRO=`echo $FOUND | sed 's/:.*//'`
+			if [ "$FOUND" != "" ]
+			then
+				REEMPLAZADOS=`expr $REEMPLAZADOS + 1`
+				sed -i ''$NRO'd' $GRUPO$REPODIR/exp_output	
+				echo "$NEW" >> $GRUPO$REPODIR/exp_output
+			else
+				AGREGADOS=`expr $AGREGADOS + 1`
+				echo "$NEW" >> $GRUPO$REPODIR/exp_output
+			fi
+		else
+			AGREGADOS=`expr $AGREGADOS + 1`
+			echo "$NEW" >> $GRUPO$REPODIR/exp_output
+	fi
+fi
+}
+
+initLog
+#processAllFiles
+closeLog
+
