@@ -1,8 +1,7 @@
 #!/bin/perl
 # Biblioteca de funciones para la interfaz de usuario
-require "paths.pl";
-require "accesoDatos.pl";
-require "accesoArchivo.pl";
+require $includeDir."accesoDatos.pl";
+require $includeDir."accesoArchivo.pl";
 use feature qw(switch);
 use POSIX qw(strftime);
 

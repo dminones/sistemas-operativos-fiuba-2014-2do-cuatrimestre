@@ -1,8 +1,17 @@
 #!/usr/bin/perl
-require "interfazUsuario.pl";
-require "accesoDatos.pl";
-require "accesoArchivo.pl";
-require "auxiliar.pl";
+$grupo = $ENV{'GRUPO'};
+$repodir = $grupo.$ENV{'REPODIR'}."/";
+$maedir = $grupo.$ENV{'MAEDIR'}."/";
+$includeDir = $grupo.$ENV{'BINDIR'}."/";
+use lib $includeDir."interfazUsuario.pl";
+use lib $includeDir."accesoDatos.pl";
+use lib $includeDir."accesoArchivo.pl";
+use lib $includeDir."auxiliar.pl";
+
+require $includeDir."interfazUsuario.pl";
+require $includeDir."accesoDatos.pl";
+require $includeDir."accesoArchivo.pl";
+require $includeDir."auxiliar.pl";
 
 $stdin = "5";
 while ($stdin != 0){

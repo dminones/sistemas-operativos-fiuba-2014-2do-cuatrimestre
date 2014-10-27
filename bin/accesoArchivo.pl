@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-require "interfazUsuario.pl";
+require $includeDir."interfazUsuario.pl";
 
 
 sub getExpedientes() {
