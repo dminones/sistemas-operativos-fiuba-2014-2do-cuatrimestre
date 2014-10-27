@@ -99,20 +99,6 @@ validDate(){
 
   #en este punto es una fecha válida
   #verifico q es antes de hoy
-<<<<<<< HEAD
-  HOY=`date +%Y%m%d`
-  echo "HOY "$HOY
-  echo "FECHA A VALIDAR "$DATE
-  DIFF=`expr $HOY - $DATE`
-  echo $DIFF
-
-
-  if [ $DIFF -ge 0 ] && [ $DIFF -ge 0 ]; then
-    echo "VALIDA"
-    return 0
-  else
-    echo "INVALIDA"
-=======
   HOY=$(date +%Y%m%d)
   END_DATE=$(date +%Y%m%d -d "30 day ago")
   DIFF=$(echo "$DATE<=$HOY&&$DATE>=$END_DATE"| bc)
@@ -121,7 +107,6 @@ validDate(){
   then
     return 0
   else
->>>>>>> FETCH_HEAD
     return 1
   fi
 
@@ -239,13 +224,8 @@ doProcessFile() {
 
 doRecept(){
 
-<<<<<<< HEAD
-
-  NOVEDIR_FILES=$NOVEDIR/*
-=======
   NOVEDIR_FILES=$NOVEDIR_PATH/*
->>>>>>> FETCH_HEAD
-
+  
   SAVEIFS=$IFS
   IFS=$(echo -en "\n\b")
   for FILE in $(ls -A $NOVEDIR_PATH)
@@ -261,10 +241,5 @@ doRecept(){
   doCdossier
 }
 
-<<<<<<< HEAD
-validDate "20140927"
-#doRecept
-=======
 #validDate "20140931"
 doRecept
->>>>>>> FETCH_HEAD
