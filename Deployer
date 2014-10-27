@@ -180,7 +180,7 @@ preguntar_variables()
 			VALID="$?"
 		done
 		VALID=$FALSE
-		clear
+		tput clear
 		imprimir_variables
 		echo_y_log INFO "Estado de la instalación: LISTA"
 		echo_y_log INFO "Iniciando Instalación. Esta Ud. seguro? (SI - NO)"
