@@ -49,6 +49,8 @@ $FSOLDES)  run $1
     ;;
 $CDOSSIERE)  run $1
     ;;
+$LISTE)  run $1
+    ;;
 *) echo_y_log "El comando $1 no existe"
    ;;
 esac

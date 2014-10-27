@@ -4,7 +4,9 @@
 RECEPT="Recept"
 FSOLDES="FSoldes"
 CDOSSIER="CDossier"
+LISTE="Liste.pl"
 
+PERL_PATH=/usr/bin/perl
 BINDIR_PATH=$GRUPO$BINDIR
 LOGDIR_PATH=$GRUPO$LOGDIR
 NOVEDIR_PATH=$GRUPO$NOVEDIR
@@ -60,11 +62,19 @@ initProcess(){
 		if [ "$RECEPT" == "$1" ]; then
 				initBackground $1
 		else
-				initForeground $1
+			if [ "$LISTE" == "$1" ];then
+					initPerl $1
+			else
+					initForeground $1
+			fi
 		fi
 		processPid=$!
 	fi
 	CHILD_PID=$processPid
+	if [ ! "$CHILD_PID" ]
+	then
+		CHILD_PID=0
+	fi
 	ESTA_CORRIENDO=$estaCorriendo
 	return 0
 }
@@ -77,5 +87,8 @@ initBackground(){
 	$BINDIR_PATH/$1 &
 }
 
+initPerl(){
+	$PERL_PATH $GRUPO/tp/$1
+}
 
 
