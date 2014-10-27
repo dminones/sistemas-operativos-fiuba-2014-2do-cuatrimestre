@@ -3,7 +3,7 @@
 
 RECEPT="Recept"
 FSOLDES="FSoldes"
-CDOSSIER="CDossier"
+CDOSSIER="Cdossier"
 LISTE="Liste.pl"
 
 PERL_PATH=/usr/bin/perl
