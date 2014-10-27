@@ -12,8 +12,6 @@ ACEPDIR_PATH=$GRUPO$ACEPDIR
 RECHDIR_PATH=$GRUPO$RECHDIR
 MAEDIR_PATH=$GRUPO$MAEDIR
 
-INITLOG=$LOGDIR_PATH"/ReceptInit"
-
 RECEPT_LOG_NAME="Recept"
 RECEPT_LOG="$LOGDIR_PATH/$RECEPT_LOG_NAME"
 
@@ -28,10 +26,11 @@ getFileContent() {
 }
 
 getProcessPid(){
-	if [ "$(pgrep -f -o $1)" = "" ];then
-			echo 0
+	if [ $(ps cax | grep -c $1) -eq 1 ];then
+		PROCESS_PID=$(pgrep "$1")
+		echo "$PROCESS_PID"
 	else
-			pgrep -f -o $1
+		echo "0"
 	fi
 }
 
@@ -54,33 +53,20 @@ Log(){
 
 # $1 Proceso a iniciar
 initProcess(){
+	estaCorriendo=1
 	processPid=$(getProcessPid $1)
-	
 	if [ $processPid -eq 0 ]; then
-
-			echo -n "Iniciando $1...   "
-
-			if [ -f $INITLOG ]; then
-					rm $INITLOG
-			fi
-
-			if [ $RECEPT == $1 ]; then
-					initBackground $1
-			else
-					initForeground $1
-			fi
-
-			error=$(cat $INITLOG)
-			if [ -s $INITLOG ]; then
-					Log "No pudo iniciarse $1: "$error
-			else
-					echo "[OK]"
-			fi
-
-	else
-		echo "$1 corriendo bajo el no.: "$processPid
-		Log "Invocacion de $1 pospuesta para el siguiente ciclo"
+		estaCorriendo=0
+		if [ "$RECEPT" == "$1" ]; then
+				initBackground $1
+		else
+				initForeground $1
+		fi
+		processPid=$!
 	fi
+	CHILD_PID=$processPid
+	ESTA_CORRIENDO=$estaCorriendo
+	return 0
 }
 
 initForeground(){
@@ -88,7 +74,7 @@ initForeground(){
 }
 
 initBackground(){
-	$BINDIR_PATH/$1 >$INITLOG 2>&1 < /dev/null &
+	$BINDIR_PATH/$1 &
 }
 
 
