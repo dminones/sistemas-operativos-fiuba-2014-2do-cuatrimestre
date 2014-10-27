@@ -1,15 +1,11 @@
 #!/bin/bash
 . Logger
 
-pushd `dirname $0` > /dev/null
-BINDIR=`pwd`
-
-popd > /dev/null
-
 RECEPT="Recept"
 FSOLDES="FSoldes"
 CDOSSIER="CDossier"
 
+BINDIR_PATH=$GRUPO$BINDIR
 LOGDIR_PATH=$GRUPO$LOGDIR
 NOVEDIR_PATH=$GRUPO$NOVEDIR
 ACEPDIR_PATH=$GRUPO$ACEPDIR
@@ -53,24 +49,13 @@ logWarning(){
 }
 
 Log(){
-	logInfo $1
-}
-
-ambienteEstaSeteado(){
-	local SETEADO=$K_TRUE
-
-	if [ -z $GRUPO ] || [ -z $CONFDIR ] || [ -z $BINDIR ] || [ -z $MAEDIR ] || [ -z $NOVEDIR ] || [ -z $DATASIZE ] || [ -z $ACEPDIR ] || [ -z $REPODIR ] || [ -z $RECHDIR ] || [ -z $LOGDIR ] || [ -z $DUPDIR ];
-	then
-		SETEADO=$K_FALSE
-	fi
-
-	echo "$SETEADO"
+	logInfo "$1"
 }
 
 # $1 Proceso a iniciar
 initProcess(){
 	processPid=$(getProcessPid $1)
-
+	
 	if [ $processPid -eq 0 ]; then
 
 			echo -n "Iniciando $1...   "

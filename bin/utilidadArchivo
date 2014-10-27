@@ -1,5 +1,5 @@
 #!/bin/bash
-. ./Logger
+. Logger
 
 _detectar_comando(){
 	if [ $# -lt 7 ]

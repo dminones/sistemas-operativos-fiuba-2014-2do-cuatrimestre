@@ -6,8 +6,8 @@
 SLEEP_TIME=10
 nroCiclo=0
 $BINDIR_PATH/DoRecept
-while [[ true ]]; do
-	Log "Recept ciclo nro."$nroCiclo
+while [[ 0 ]]; do
+	Log "Recept ciclo nro. $nroCiclo"
 
 	$BINDIR_PATH/DoRecept
 	let nroCiclo++

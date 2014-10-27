@@ -5,8 +5,8 @@
 K_FALSE=0
 K_TRUE=1
 
-checkearAmbiente
-if [ $? -eq $K_FALSE ];
+AMBIENTE_INICIALIZADO=$(checkearAmbiente)
+if [ $AMBIENTE_INICIALIZADO -eq $K_FALSE ];
 then
 	echo "Ambiente no inicializado" 
 	exit 1
