@@ -5,7 +5,7 @@
 
 bankExists(){
   local NAME=$1
-  local BANCOS_FILE=$MAEDIR/bancos.dat
+  local BANCOS_FILE=$MAEDIR_PATH/bancos.dat
 
   local LINEA=`grep "^$NAME" "$BANCOS_FILE"`
 
@@ -15,7 +15,7 @@ bankExists(){
 
 camaraExists(){
   local NAME=$1
-  local CAMARAS_FILE=$MAEDIR/camaras.dat
+  local CAMARAS_FILE=$MAEDIR_PATH/camaras.dat
 
   local LINEA=`grep "^$NAME" "$CAMARAS_FILE"`
 
@@ -25,7 +25,7 @@ camaraExists(){
 
 tribunalExists(){
   local NAME=$1
-  local TRIBUNALES_FILE=$MAEDIR/pjn.dat
+  local TRIBUNALES_FILE=$MAEDIR_PATH/pjn.dat
 
   local LINEA=`grep "^$NAME" "$TRIBUNALES_FILE"`
 
@@ -38,24 +38,21 @@ validDate(){
   local DATE=$1
 
   if [[ $DATE =~ ^[0-9]{4}[0-1]{1}[0-9]{1}[0-3]{1}[0-9]{1}$ ]]; then
-    year=${DATE:0:4}
-    year=10#$year
-    month=${DATE:4:2}
-    month=10#$month
-    day=${DATE:6:8}
-    day=day#$month
+    year=$(echo ${DATE:0:4} | bc)
+    month=$(echo ${DATE:4:2} | bc)
+    day=$(echo ${DATE:6:8} | bc)
   else
     return 1
   fi
 
-  if [[ $month -gt 12 ]]; then
+  if [[ $month -gt "12" ]]; then
     return 1
   fi
 
 
   # if month is negative (<0) or greater than 12
   # then it is invalid month
-  if [ $month -le 0 -o $month -gt 12 ];
+  if [[ $month -le "0" ]]
   then
       return 1
   fi
@@ -102,18 +99,29 @@ validDate(){
 
   #en este punto es una fecha válida
   #verifico q es antes de hoy
+<<<<<<< HEAD
   HOY=`date +%Y%m%d`
   echo "HOY "$HOY
   echo "FECHA A VALIDAR "$DATE
   DIFF=`expr $HOY - $DATE`
   echo $DIFF
 
-  
+
   if [ $DIFF -ge 0 ] && [ $DIFF -ge 0 ]; then
     echo "VALIDA"
     return 0
   else
     echo "INVALIDA"
+=======
+  HOY=$(date +%Y%m%d)
+  END_DATE=$(date +%Y%m%d -d "30 day ago")
+  DIFF=$(echo "$DATE<=$HOY&&$DATE>=$END_DATE"| bc)
+
+  if [ $DIFF -eq 1 ]
+  then
+    return 0
+  else
+>>>>>>> FETCH_HEAD
     return 1
   fi
 
@@ -124,12 +132,32 @@ validFile(){
   local file=$1
   local filename=$(basename $file)
 
+  #El archivo no es vacio
+  if [ ! -s $file ]; then
+  	echo "Archivo vacio"
+  	return 1
+  fi
+
+  #Si el archivo no es de texto return
+  if [ $(file -b -i $file | grep -c "text/plain") -eq 0 ]; then
+  	echo "Tipo de archivo invalido"
+  	return 1
+  fi
+
   if [[ $filename == *@* ]] ; then
     IFS="@" read camara tribunal <<< "$filename"
 
     # Devuelve 0 si ambos son 0
-    if camaraExists $camara && tribunalExists $tribunal;then
-      return 0
+    if ! camaraExists $camara; then
+    	echo "Camara no existe"
+    	return 1
+    fi
+
+    if tribunalExists $tribunal;then
+      	return 0
+    else
+    	echo "Tribunal no existe"
+    	return 1
     fi
   fi
 
@@ -137,9 +165,18 @@ validFile(){
     IFS="_" read bank date <<< "$filename"
 
     # Devuelve 0 si ambos son 0
-    if bankExists $bank && validDate $date;then return 0; fi
+    if ! bankExists $bank; then
+    	echo "Banco no existe"
+    	return 1
+    fi
+    if validDate $date;then
+    	return 0
+    else
+    	echo "Fecha invalida"
+    	return 1
+    fi
   fi
-
+  echo "Formato de nombre invalido"
   return 1
 }
 
@@ -148,54 +185,75 @@ executeIfNeeded(){
   local files=$2
 
   if [[ -n $(ls $files 2>/dev/null) ]]; then
-    #initProcess $command
-    Log $command
+    initProcess $command
   fi
 }
 
 doCdossier() {
-  local ACEPDIR_EXPEDIENTES=$ACEPDIR/*@*
+  local ACEPDIR_EXPEDIENTES=$ACEPDIR_PATH/*@*
   executeIfNeeded $CDOSSIER $ACEPDIR_EXPEDIENTES
 }
 
 doFsoldes() {
-  local ACEPDIR_BANCOS=$ACEPDIR/[^@]*_*
+  local ACEPDIR_BANCOS=$ACEPDIR_PATH/[^@]*_*
   executeIfNeeded $FSOLDES $ACEPDIR_BANCOS
 }
 
 moveFile(){
-  local LOG_DIR=$LOGDIR
+  local LOG_DIR=$LOGDIR_PATH$RECEPT_LOG_NAME
   local LOG_NAME=$RECEPT_LOG_NAME
-  local DUP_DIR=""
   local FILE_NAME=$(basename $1)
-  local DIR_1=$NOVEDIR
+  local DIR_1=$NOVEDIR_PATH
   local DIR_2=$2
 
-  mover "$LOG_DIR" "$LOG_NAME" "$DUP_DIR" "$FILE_NAME" "$DIR_1" "$DIR_2"
+  mover "$LOG_DIR_PATH" "$RECEPT" "$DUPDIR" "$FILE_NAME" "$DIR_1" "$DIR_2"
+}
+
+isExpedienteFile(){
+	local filename=$(basename $1)
+
+	if [[ $filename == *@* ]] ; then
+		return 0
+	fi
+
+	return 1
 }
 
 doProcessFile() {
-  local file=$1
+	local file=$1
 
-  if validFile $file; then
-    Log "Mover "$file" a ACEPDIR"
-    moveFile $file $ACEPDIR
-  else
-    Log "Mover "$file" a RECHDIR"
-    moveFile $file $RECHDIR
-  fi
+	type="Saldos"
+	if isExpedienteFile $file; then
+		type="Expedientes"
+	fi
+
+	motivo=$(validFile $file)
+	if [ $? -eq "0" ]; then
+		Log "Archivo de $type aceptado: $file"
+		moveFile $file $ACEPDIR_PATH
+	else
+		Log "Archivo rechazado: $file. Motivo: $motivo"
+		moveFile $file $RECHDIR_PATH
+	fi
 }
 
 doRecept(){
 
+<<<<<<< HEAD
 
   NOVEDIR_FILES=$NOVEDIR/*
+=======
+  NOVEDIR_FILES=$NOVEDIR_PATH/*
+>>>>>>> FETCH_HEAD
 
   SAVEIFS=$IFS
   IFS=$(echo -en "\n\b")
-  for f in $NOVEDIR_FILES
+  for FILE in $(ls -A $NOVEDIR_PATH)
   do
-    doProcessFile $f
+	if [ -f $NOVEDIR_PATH/$FILE ]
+	then
+		doProcessFile $NOVEDIR_PATH/$FILE
+	fi
   done
   IFS=$SAVEIFS
 
@@ -203,5 +261,10 @@ doRecept(){
   doCdossier
 }
 
+<<<<<<< HEAD
 validDate "20140927"
 #doRecept
+=======
+#validDate "20140931"
+doRecept
+>>>>>>> FETCH_HEAD

@@ -1,27 +1,21 @@
 #!/bin/bash
-#. Logger
-
-pushd `dirname $0` > /dev/null
-BINDIR=`pwd`
-popd > /dev/null
+. Logger
 
 RECEPT="Recept"
 FSOLDES="FSoldes"
-CDOSSIER="CDossier"
+CDOSSIER="Cdossier"
+LISTE="Liste.pl"
 
+PERL_PATH=/usr/bin/perl
+BINDIR_PATH=$GRUPO$BINDIR
+LOGDIR_PATH=$GRUPO$LOGDIR
+NOVEDIR_PATH=$GRUPO$NOVEDIR
+ACEPDIR_PATH=$GRUPO$ACEPDIR
+RECHDIR_PATH=$GRUPO$RECHDIR
+MAEDIR_PATH=$GRUPO$MAEDIR
 
-PIDDIR=$BINDIR
-LOGDIR=$BINDIR"/"
-NOVEDIR=$BINDIR/../novedir
-ACEPDIR=$BINDIR/../acepdir
-RECHDIR=$BINDIR/../rechdir
-MAEDIR=$BINDIR/../maedir
-
-INITLOG=$LOGDIR"ReceptInit.log"
-
-RECEPT_PID_FILE=$PIDDIR"/RECEIPT_PID"
-RECEPT_LOG_NAME="Recept.log"
-RECEPT_LOG="$LOGDIR$RECEPT_LOG_NAME"
+RECEPT_LOG_NAME="Recept"
+RECEPT_LOG="$LOGDIR_PATH/$RECEPT_LOG_NAME"
 
 ERROR="[ERR]"
 
@@ -34,53 +28,67 @@ getFileContent() {
 }
 
 getProcessPid(){
-	if [ "$(pgrep -f -o $1)" = "" ];then
-			echo 0
+	if [ $(ps cax | grep -c $1) -eq 1 ];then
+		PROCESS_PID=$(pgrep "$1")
+		echo "$PROCESS_PID"
 	else
-			pgrep -f -o $1
+		echo "0"
 	fi
+}
+
+
+logError(){
+	log "$RECEPT_LOG" "$RECEPT" "[ERR]" "$1"
+}
+
+logInfo(){
+	log "$RECEPT_LOG" "$RECEPT" "[INFO]" "$1"
+}
+
+logWarning(){
+	log "$RECEPT_LOG" "$RECEPT" "[WARN]" "$1"
 }
 
 Log(){
-	#log $RECEPT_LOG $RECEPT $ERROR $1
-	echo $1" "$RECEPT" "$ERROR >> $RECEPT_LOG
+	logInfo "$1"
 }
-
 
 # $1 Proceso a iniciar
 initProcess(){
+	estaCorriendo=1
 	processPid=$(getProcessPid $1)
-
 	if [ $processPid -eq 0 ]; then
-
-			echo -n "Iniciando $1...   "
-
-			if [ -f $INITLOG ]; then
-					rm $INITLOG
-			fi
-
-			if [ $RECEPT == $1 ]; then
-					initBackground $1
+		estaCorriendo=0
+		if [ "$RECEPT" == "$1" ]; then
+				initBackground $1
+		else
+			if [ "$LISTE" == "$1" ];then
+					initPerl $1
 			else
 					initForeground $1
 			fi
-
-			error=$(cat $INITLOG)
-			if [ -s $INITLOG ]; then
-					Log "No pudo iniciarse $1: "$error
-			else
-					echo "[OK]"
-			fi
-
-	else
-		echo "Recept corriendo bajo el no.: "$processPid
+		fi
+		processPid=$!
 	fi
+	CHILD_PID=$processPid
+	if [ ! "$CHILD_PID" ]
+	then
+		CHILD_PID=0
+	fi
+	ESTA_CORRIENDO=$estaCorriendo
+	return 0
 }
 
 initForeground(){
-	$BINDIR/$1
+	$BINDIR_PATH/$1
 }
 
 initBackground(){
-	$BINDIR/$1 >$INITLOG 2>&1 < /dev/null &
+	$BINDIR_PATH/$1 &
 }
+
+initPerl(){
+	$PERL_PATH $BINDIR_PATH/$1
+}
+
+

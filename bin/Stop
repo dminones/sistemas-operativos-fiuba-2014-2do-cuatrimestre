@@ -2,17 +2,25 @@
 # Verifica si está corriendo Receipt y lo para si está corriendo
 . Helpers
 
+echo_y_log(){
+	echo "$1"
+	Log "$1"
+}
+
 stopProcess(){
   processPid=$(getProcessPid $1)
 
   if [ $processPid -eq 0 ]; then
-      echo "$1 no está ejecutandose"
+      echo_y_log "$1 no está ejecutandose"
   else
-    echo -n "Deteniendo $1...    "
-    Result=$(pkill -f $1)
-    if [ !$Result ]; then
-      echo "[OK]"
+  	local MESSAGE="Deteniendo $1...    "
+    Result=$(kill $processPid)
+    if [ $Result ]; then
+      MESSAGE=$(echo "$MESSAGE[ERROR]")
+    else
+      MESSAGE=$(echo "$MESSAGE[OK]")
     fi
+    echo_y_log "$MESSAGE"
   fi
 }
 
@@ -26,10 +34,6 @@ case "$1" in
 
 $RECEPT)  stopProcess $1
     ;;
-$FSOLDES)  stopProcess $1
-    ;;
-$CDOSSIERE)  stopProcess $1
-    ;;
-*) echo "El comando $1 no existe"
+*) echo_y_log "El comando $1 no existe"
    ;;
 esac

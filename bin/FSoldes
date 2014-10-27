@@ -12,44 +12,32 @@
 #######
 
 #imports
+#. Deployer.conf
 . Logger
 . CsvParser
 . utilidadArchivo
 
-#constants
-readonly K_ACTION_ALTA=1
-readonly K_ACTION_REEMPLAZO=2
-readonly K_ACTION_ANTERIOR=3
-readonly K_ACTION_DUPLICADO=4
 
-readonly K_REC_REJECTED=0
-readonly K_REC_ACCEPTED=1
+#constants
+K_ACTION_ALTA=1
+K_ACTION_REEMPLAZO=2
+K_ACTION_ANTERIOR=3
+K_ACTION_DUPLICADO=4
+
+K_REC_REJECTED=0
+K_REC_ACCEPTED=1
 
 #functions
 start_paths(){
-	local BINDIR=`pwd`
-	local JOB_PATH=$BINDIR/../
-	MAEDIR="maedir/"
-	MAEDIR_PATH="$JOB_PATH$MAEDIR"
-	ACEPDIR="acepdir/"
-	BANCOS="bancos.dat"
-	BANCOS_FILE="$JOB_PATH$MAEDIR$BANCOS"
-	local LOG_DIR="logdir/"
-	local LOG_FILE_NAME="FSoldes"
-	LOG_FILE="$LOG_DIR$LOG_FILE_NAME"
-	ACEPDIR_PATH="$JOB_PATH$ACEPDIR"
-	PROCDIR="$ACEPDIR_PATH""proc/"
-	RECHDIR="$JOB_PATH""rech/"
-	SALDOS_LIS_FILE="saldos.lis"
-	SALDOS_TAB_FILE="saldos.tab"
-	SALDOS_DIR="$MAEDIR_PATH""saldos/"
-	SALDOS_TAB_FILE_PATH="$SALDOS_DIR$SALDOS_TAB_FILE"
-	SALDOS_LIS_FILE_PATH="$SALDOS_DIR$SALDOS_LIS_FILE"
+	SALDOS_DIR="$GRUPO$MAEDIR""/saldos"
+	LOG_FILE="$GRUPO$LOGDIR""/FSoldes"
+	SALDOS_TAB_FILE_PATH="$SALDOS_DIR/saldos.tab"
+	SALDOS_LIS_FILE_PATH="$SALDOS_DIR/saldos.lis"
 }
 
 format_bank(){
 	NAME=$1
-	LINEA=`grep "^$NAME" "$BANCOS_FILE"`
+	LINEA=`grep "^$NAME" "$GRUPO$MAEDIR/bancos.dat"`
 	FORMAT_CBU=`getLastCsvField "$LINEA"`	
 	CODIGO_ENTIDAD=`getCsvFieldNumber "$LINEA" 2`
 	UBIC_CBU=`getCsvFieldNumber "$LINEA" 4`
@@ -59,23 +47,21 @@ format_bank(){
 
 #$1:file
 processFile(){
-	typeset FILE=$1	
-	echo "archivo a procesar: $ACEPDIR_PATH$FILE"
+	local FILE=$1	
+
 	myLog 'processFile' 'info' "Archivo a procesar:$FILE"
-	typeset BANCO=`echo $FILE | sed 's/_.*$//'`
-	typeset FECHA=`echo $FILE | sed 's/^.*_//'`
+	local BANCO=`echo $FILE | sed 's/_.*$//'`
+	local FECHA=`echo $FILE | sed 's/^.*_//'`
 	
 	format_bank "$BANCO"
 
-	typeset ACTION=$(curseOfAction "$CODIGO_ENTIDAD" "$FECHA")
+	local ACTION=$(curseOfAction "$CODIGO_ENTIDAD" "$FECHA")
 	if [ $ACTION -eq $K_ACTION_ALTA ] || [ $ACTION -eq $K_ACTION_REEMPLAZO ]; then
 		processValidFile "$ACTION" "$FILE" "$BANCO" "$FECHA"
 	elif [ $ACTION -eq $K_ACTION_ANTERIOR ]; then
-		echo "es anterior"
 		myLog 'processFile' 'info' "Fecha del Archivo anterior a la existente. Se rechaza el archivo"
 		moveRejectedFile "$FILE"
 	else
-		echo "es duplicado"
 		myLog 'processFile' 'info' "Archivo duplicado. Se rechaza el archivo"
 		moveRejectedFile "$FILE"
 	fi
@@ -103,6 +89,8 @@ processValidFile(){
 	typeset ACCEPTED_RECORDS=0
 	typeset REJECTED_RECORDS=0
 	
+	local FILE_PATH="$GRUPO$ACEPDIR""/""$FILE"
+	
 	while read LINE; do
 		READ_RECORDS=`expr $READ_RECORDS + 1`
 		typeset RESULT=$(processLine "$LINE")
@@ -111,14 +99,13 @@ processValidFile(){
 		else
 			REJECTED_RECORDS=`expr $REJECTED_RECORDS + 1`
 		fi;
-	done < "$ACEPDIR_PATH$FILE"
+	done < "$FILE_PATH"
 	
 	myLog 'processValidFile' 'info' "Registro eliminados: $DELETED_RECORDS"
 	myLog 'processValidFile' 'info' "Registro leidos: $READ_RECORDS"
 	myLog 'processValidFile' 'info' "Registro aceptados: $ACCEPTED_RECORDS"
 	myLog 'processValidFile' 'info' "Registro rechazados: $REJECTED_RECORDS"
 	
-	#moveProcessedFile "$ACEPDIR_PATH$FILE"
 	moveProcessedFile "$FILE"
 	
 	updateSaldosTab "$BANCO" "$CODIGO_ENTIDAD" "$FECHA"
@@ -126,12 +113,12 @@ processValidFile(){
 
 #$1:fileName
 moveProcessedFile(){
-	mover "$LOG_FILE" "moveProcessedFile" "proc" "$1" "$ACEPDIR_PATH" "$PROCDIR"
+	mover "$LOG_FILE" "moveProcessedFile" "$DUPDIR" "$1" "$GRUPO$ACEPDIR" "$GRUPO$ACEPDIR/proc"
 }
 
 #1)fileName
 moveRejectedFile(){
-	mover "$LOG_FILE" "moveRejectedFileFile" "rech" "$1" "$ACEPDIR_PATH" "$RECHDIR"
+	mover "$LOG_FILE" "moveRejectedFileFile" "$DUPDIR" "$1" "$GRUPO$ACEPDIR" "$GRUPO$RECHDIR"
 }
 
 #$1:nombreEntidad,$2:codigoEntidad,$3:fechaSaldo
@@ -145,14 +132,14 @@ updateSaldosTab(){
 
 backupSaldos(){
 	local ORIGEN="$SALDOS_DIR"
-	local DESTINO="$SALDOS_DIR""ant/"
+	local DESTINO="$SALDOS_DIR""/ant"
 
 	if [ -f $SALDOS_TAB_FILE_PATH ]; then
-		copiar "$LOG_FILE" "backupSaldos" "ant" "$SALDOS_TAB_FILE" "$ORIGEN" "$DESTINO"
+		copiar "$LOG_FILE" "backupSaldos" "$DUPDIR" "saldos.tab" "$ORIGEN" "$DESTINO"
 	fi
 	
 	if [ -f $SALDOS_LIS_FILE_PATH ]; then
-		copiar "$LOG_FILE" "backupSaldos" "ant" "$SALDOS_LIS_FILE" "$ORIGEN" "$DESTINO"
+		copiar "$LOG_FILE" "backupSaldos" "$DUPDIR" "saldos.lis" "$ORIGEN" "$DESTINO"
 	fi
 }
 
@@ -235,11 +222,12 @@ getCBU(){
 }
 
 processAllFiles(){
-	typeset FILES=`ls -B "$ACEPDIR_PATH"` #ignora archivos con ~
+	typeset FILES=`ls -B "$GRUPO$ACEPDIR" | grep "^[^_]*_[0-9]*$"` #ignora archivos con ~
 	for FILE_ITEM in $FILES;
 	do
 		#evitar procesar carpetas
-		if [[ -f $ACEPDIR_PATH$FILE_ITEM ]]; then
+		local THE_FILE="$GRUPO$ACEPDIR""/""$FILE_ITEM"
+		if [[ -f $THE_FILE ]]; then
 			processFile "$FILE_ITEM"
 		fi
 	done

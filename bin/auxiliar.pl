@@ -10,6 +10,7 @@ sub canExecute(){
 
 #Verifica que el ambiente este inicializado
 sub isInitialized(){
+	
 }
 
 #Verifica que no haya un proceso Liste en ejecucion

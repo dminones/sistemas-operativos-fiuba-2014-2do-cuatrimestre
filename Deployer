@@ -1,5 +1,5 @@
 #!/bin/bash
-. Logger
+. bin/Logger
 # Constantes con las preguntas mas largas
 HEADER="TP SO7508 Segundo Cuatrimestre 2014. Tema E Copyright © Grupo 5"
 
@@ -25,13 +25,13 @@ echo_y_log()
 	WHAT=$1
 	WHY=$2
 	echo "$WHY"
-	log "$DEPLOYER_LOG" "$WHERE" "$WHAT" "$WHY"
+	log "$GRUPO$DEPLOYER_LOG" "$WHERE" "$WHAT" "$WHY"
 }
 
 _internal_log(){
 	WHAT=$1
 	WHY=$2
-	log "$DEPLOYER_LOG" "$WHERE" "$WHAT" "$WHY"
+	log "$GRUPO$DEPLOYER_LOG" "$WHERE" "$WHAT" "$WHY"
 }
 
 #log()
@@ -365,10 +365,10 @@ REPODIR=/demande
 RECHDIR=/nok
 LOGDIR=/log
 DUPDIR=/dup
-DEPLOYER_LOG=$CONFDIR/Deployer.log
+DEPLOYER_LOG=$CONFDIR/Deployer
 
 echo_y_log INFO "Inicio de Ejecucion de Deployer"
-echo_y_log INFO "Log de la instalacion: $DEPLOYER_LOG"
+echo_y_log INFO "Log de la instalacion: $DEPLOYER_LOG.log"
 echo_y_log INFO "Directorio predefinido de Configuración: $CONFDIR"
 checkear_instalacion
 if [ $TRUE -eq $? ]
@@ -404,7 +404,7 @@ then
 		if [ "$ACEPTO" == "SI" ]
 		then
 			echo_y_log INFO "Iniciando Instalación. Esta Ud. seguro? (SI - NO)"
-			local ACEPTO=$(leer_o_default "a")
+			ACEPTO=$(leer_o_default "a")
 			while [ "$ACEPTO" != "SI" -a "$ACEPTO" != "NO" ]
 			do
 			echo_y_log WARN "Respuesta Incorrecta. Escriba SI o NO."
