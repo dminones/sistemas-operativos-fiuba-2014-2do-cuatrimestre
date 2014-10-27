@@ -2,6 +2,17 @@
 # Debut: verifica si está corriendo Receipt y lo ejecuta si no está corriendo
 . Helpers
 
+K_FALSE=0
+K_TRUE=1
+
+AMBIENTE_INICIALIZADO=$(checkearAmbiente)
+if [ $AMBIENTE_INICIALIZADO -eq $K_FALSE ];
+then
+	echo "Ambiente no inicializado" 
+	exit 1
+fi
+
+
 if [ $# -lt 1 ]
 then
         echo "Uso : $0 <<comando a ejecutar>>"

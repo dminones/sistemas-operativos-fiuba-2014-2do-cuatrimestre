@@ -1,0 +1,26 @@
+#!/bin/bash
+
+SETEADO=1
+
+checkearVar()
+{
+	if [ -z "$1" ]
+	then
+		SETEADO=0
+	fi
+}
+
+checkearVar $GRUPO
+checkearVar $CONFDIR
+checkearVar $BINDIR
+checkearVar $MAEDIR
+checkearVar $NOVEDIR
+checkearVar $ACEPDIR
+checkearVar $REPODIR
+checkearVar $RECHDIR
+checkearVar $LOGDIR
+checkearVar $DUPDIR
+checkearVar $DATASIZE
+
+echo "$SETEADO"
+exit $SETEADO

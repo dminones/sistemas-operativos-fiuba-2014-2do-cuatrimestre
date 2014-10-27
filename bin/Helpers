@@ -1,27 +1,21 @@
 #!/bin/bash
-#. Logger
-
-pushd `dirname $0` > /dev/null
-BINDIR=`pwd`
-popd > /dev/null
+. Logger
 
 RECEPT="Recept"
 FSOLDES="FSoldes"
 CDOSSIER="CDossier"
 
+BINDIR_PATH=$GRUPO$BINDIR
+LOGDIR_PATH=$GRUPO$LOGDIR
+NOVEDIR_PATH=$GRUPO$NOVEDIR
+ACEPDIR_PATH=$GRUPO$ACEPDIR
+RECHDIR_PATH=$GRUPO$RECHDIR
+MAEDIR_PATH=$GRUPO$MAEDIR
 
-PIDDIR=$BINDIR
-LOGDIR=$BINDIR"/"
-NOVEDIR=$BINDIR/../novedir
-ACEPDIR=$BINDIR/../acepdir
-RECHDIR=$BINDIR/../rechdir
-MAEDIR=$BINDIR/../maedir
+INITLOG=$LOGDIR_PATH"/ReceptInit"
 
-INITLOG=$LOGDIR"ReceptInit.log"
-
-RECEPT_PID_FILE=$PIDDIR"/RECEIPT_PID"
-RECEPT_LOG_NAME="Recept.log"
-RECEPT_LOG="$LOGDIR$RECEPT_LOG_NAME"
+RECEPT_LOG_NAME="Recept"
+RECEPT_LOG="$LOGDIR_PATH/$RECEPT_LOG_NAME"
 
 ERROR="[ERR]"
 
@@ -41,16 +35,27 @@ getProcessPid(){
 	fi
 }
 
-Log(){
-	#log $RECEPT_LOG $RECEPT $ERROR $1
-	echo $1" "$RECEPT" "$ERROR >> $RECEPT_LOG
+
+logError(){
+	log "$RECEPT_LOG" "$RECEPT" "[ERR]" "$1"
 }
 
+logInfo(){
+	log "$RECEPT_LOG" "$RECEPT" "[INFO]" "$1"
+}
+
+logWarning(){
+	log "$RECEPT_LOG" "$RECEPT" "[WARN]" "$1"
+}
+
+Log(){
+	logInfo "$1"
+}
 
 # $1 Proceso a iniciar
 initProcess(){
 	processPid=$(getProcessPid $1)
-
+	
 	if [ $processPid -eq 0 ]; then
 
 			echo -n "Iniciando $1...   "
@@ -73,14 +78,18 @@ initProcess(){
 			fi
 
 	else
-		echo "Recept corriendo bajo el no.: "$processPid
+		echo "$1 corriendo bajo el no.: "$processPid
+		Log "Invocacion de $1 pospuesta para el siguiente ciclo"
 	fi
 }
 
 initForeground(){
-	$BINDIR/$1
+	$BINDIR_PATH/$1
 }
 
 initBackground(){
-	$BINDIR/$1 >$INITLOG 2>&1 < /dev/null &
+	$BINDIR_PATH/$1 >$INITLOG 2>&1 < /dev/null &
 }
+
+
+

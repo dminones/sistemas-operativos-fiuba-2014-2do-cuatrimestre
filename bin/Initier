@@ -12,19 +12,6 @@ logMessage(){
 	log "$LOG_FILE" "$WHERE" "$CODE" "$DESCRIPTION"
 }
 
-ambienteEstaSeteado(){
-	local SETEADO=$K_TRUE
-
-	if [ -z $GRUPO ] || [ -z $CONFDIR ] || [ -z $BINDIR ] || [ -z $MAEDIR ] || [ -z $NOVEDIR ] || [ -z $DATASIZE ] || [ -z $ACEPDIR ] || [ -z $REPODIR ] || [ -z $RECHDIR ] || [ -z $LOGDIR ] || [ -z $DUPDIR ];
-	then
-		SETEADO=$K_FALSE
-	fi
-
-	echo "$SETEADO"
-}
-
-
-
 listarContenido(){
 	local FILES=`ls -B "$1"` #ignora archivos con ~
 	for FILE_ITEM in $FILES;
@@ -43,43 +30,53 @@ iniciarVariablesDeAmbiente(){
 	local MENSAJE="TP SO7508 Segundo Cuatrimestre 2014. Tema E Copyright © Grupo xx"
 	echo "$MENSAJE"
 	logMessage "Initier" "info" "$MENSAJE"
+	export GRUPO
 	
 	MENSAJE="Directorio Configuracion: $GRUPO$CONFDIR"
+	export CONFDIR
 	echo "$MENSAJE"
 	logMessage "Initier" "info" "$MENSAJE"
 	listarContenido "$GRUPO$CONFDIR/"
 	
 	MENSAJE="Directorio Ejecutables: $BINDIR"
+	export BINDIR
 	echo "$MENSAJE"
 	logMessage "Initier" "info" "$MENSAJE"
 	listarContenido "$GRUPO$BINDIR/"
 	
 	MENSAJE="Directorio Datos Maestros y Tablas: $MAEDIR"
+	export MAEDIR
 	echo "$MENSAJE"
 	logMessage "Initier" "info" "$MENSAJE"
 	listarContenido "$GRUPO$MAEDIR/"
 	
 	MENSAJE="Directorio Flujo de Novedades: $NOVEDIR"
+	export NOVEDIR
 	echo "$MENSAJE"
 	logMessage "Initier" "info" "$MENSAJE"
 	
 	MENSAJE="Directorio Novedades Aceptadas: $ACEPDIR"
+	export ACEPDIR
 	echo "$MENSAJE"
 	logMessage "Initier" "info" "$MENSAJE"
 	
 	MENSAJE="Directorio Pedidos e Informes de Salida: $REPODIR"
+	export REPODIR
 	echo "$MENSAJE"
 	logMessage "Initier" "info" "$MENSAJE"
 	
 	MENSAJE="Directorio Archivos Rechazados: $RECHDIR"
+	export RECHDIR
 	echo "$MENSAJE"
 	logMessage "Initier" "info" "$MENSAJE"
 	
 	MENSAJE="Directorio de Logs de Comandos: $LOGDIR"
+	export LOGDIR
 	echo "$MENSAJE"
 	logMessage "Initier" "info" "$MENSAJE"
 	
 	MENSAJE="SubDirectorio de Resguardo de Archivos Duplicados: $DUPDIR"
+	export DUPDIR
 	echo "$MENSAJE"
 	logMessage "Initier" "info" "$MENSAJE"
 		
@@ -89,6 +86,11 @@ iniciarVariablesDeAmbiente(){
 		PATH=$PATH\:"$GRUPO$BINDIR"
 		export PATH	
 	fi	
+	
+	MENSAJE="Espacio mínimo libre para flujo de novedades: $DATASIZE Mb"
+	export DATASIZE
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
 	
 	MENSAJE="Estado del Sistema: INICIALIZADO"
 	echo "$MENSAJE"
@@ -173,7 +175,7 @@ arrancarRecept(){
 }
 
 #ejecucion
-AMBIENTE_SETEADO=`ambienteEstaSeteado`
+AMBIENTE_SETEADO=$(checkearAmbiente)
 if [ $AMBIENTE_SETEADO -eq $K_TRUE ];
 then
 	echo "Ambiente ya inicializado, si quiere reiniciar termine su sesion e ingrese nuevamente"
