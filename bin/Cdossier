@@ -1,7 +1,6 @@
 #!/bin/bash
 
 #Import
-. Deployer.conf
 . Logger
 . CsvParser
 . utilidadArchivo
@@ -13,7 +12,7 @@ WHERE="Cdossier"
 initLog(){
 log "$LOG_FILE" "$WHERE" "INFO" "Inicio de Cdossier"
 log "$LOG_FILE" "$WHERE" "INFO" "Archivos de expedientes aceptados:"
-for FILE in `ls $GRUPO$ACEPDIR` 
+for FILE in `ls $GRUPO$ACEPDIR | grep "^[^@]*@.[^@]*"` 
 do
 	if [ -f $GRUPO$ACEPDIR/$FILE ] 
 	then
@@ -29,21 +28,19 @@ log "$LOG_FILE" "$WHERE" "INFO" "Fin de Cdossier"
 processAllFiles(){
 if [ -f $GRUPO$MAEDIR/saldos/saldos.lis ] 
 then
-	for FILE in `ls $GRUPO$ACEPDIR`;
+	for FILE in `ls $GRUPO$ACEPDIR | grep "^[^@]*@.[^@]*"`;
 	do
 		if [ -f $GRUPO$ACEPDIR/$FILE ] 
 		then	
 			log "$LOG_FILE" "$WHERE" "INFO" "Archivo a procesar: $FILE"
 			if [ -f $GRUPO$ACEPDIR/proc/$FILE ]
 			then
-				#mv $GRUPO$ACEPDIR/$FILE $GRUPO$RECHDIR 
 				mover "$LOG_FILE" "$WHERE" "$DUPDIR" "$FILE" "$GRUPO$ACEPDIR" "$GRUPO$RECHDIR"				
 				log "$LOG_FILE" "$WHERE" "WAR" "Archivo duplicado. Se rechaza el archivo." 
 			else
 				CHECK=`grep -v '^[^;]*;[^;]*;[^;]*;.*' $GRUPO$ACEPDIR/$FILE`
 				if [ "$CHECK" != "" ] 
 				then
-					#mv $GRUPO$ACEPDIR/$FILE $GRUPO$RECHDIR 
 					mover "$LOG_FILE" "$WHERE" "$DUPDIR" "$FILE" "$GRUPO$ACEPDIR" "$GRUPO$RECHDIR"
 					log "$LOG_FILE" "$WHERE" "WAR" "Archivo con formato erroneo. Se rechaza el archivo." 
 				else
@@ -82,7 +79,6 @@ log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros ignorados: $IGNORADOS"
 log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros reemplazados: $REEMPLAZADOS"
 log "$LOG_FILE" "$WHERE" "INFO" "Cantidad de registros agregados: $AGREGADOS"
 
-#mv $GRUPO$ACEPDIR/$1 $GRUPO$ACEPDIR/proc                        
 mover "$LOG_FILE" "$WHERE" "$DUPDIR" "$1" "$GRUPO$ACEPDIR" "$GRUPO$ACEPDIR/proc"
 
 }

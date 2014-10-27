@@ -12,7 +12,7 @@
 #######
 
 #imports
-. Deployer.conf
+#. Deployer.conf
 . Logger
 . CsvParser
 . utilidadArchivo
@@ -226,7 +226,7 @@ getCBU(){
 }
 
 processAllFiles(){
-	typeset FILES=`ls -B "$GRUPO$ACEPDIR"` #ignora archivos con ~
+	typeset FILES=`ls -B "$GRUPO$ACEPDIR" | grep "^[^_]*_[0-9]*$"` #ignora archivos con ~
 	for FILE_ITEM in $FILES;
 	do
 		#evitar procesar carpetas
