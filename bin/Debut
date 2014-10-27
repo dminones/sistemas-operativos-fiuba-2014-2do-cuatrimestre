@@ -47,7 +47,7 @@ $RECEPT)  run $1
     ;;
 $FSOLDES)  run $1
     ;;
-$CDOSSIERE)  run $1
+$CDOSSIER)  run $1
     ;;
 $LISTE)  run $1
     ;;

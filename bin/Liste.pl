@@ -1,8 +1,8 @@
 #!/usr/bin/perl
-require "./interfazUsuario.pl";
-require "./accesoDatos.pl";
-require "./accesoArchivo.pl";
-require "./auxiliar.pl";
+require "interfazUsuario.pl";
+require "accesoDatos.pl";
+require "accesoArchivo.pl";
+require "auxiliar.pl";
 
 $stdin = "5";
 while ($stdin != 0){

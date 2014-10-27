@@ -88,7 +88,7 @@ initBackground(){
 }
 
 initPerl(){
-	$PERL_PATH $GRUPO/tp/$1
+	$PERL_PATH $BINDIR_PATH/$1
 }
 
 
