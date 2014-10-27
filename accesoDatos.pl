@@ -2,21 +2,6 @@
 # Biblioteca de funciones para el manejo de la información
 use feature qw(switch);
 
-sub getExpedientes() {
-	my $entrada = @_;
-	my %expedientes;
-	while ($linea=<ENTRADA>)
-	{	
-		my($key,$value);
-		my($exp,$cam,$trib,$car,$est,$cbu,$saldo,$accion)=split(";",$linea);
-		$key = "$exp;$cam;$trib";
-		$value = "$car;$est;$cbu;$saldo;$accion";
-		$expedientes{$key}=$value;
-	}
-	return %expedientes;
-}
-
-
 ####################################### Filtros Informes##########################################################
 sub filtraPorSaldo(){
 	my ($valorParametro, %expedientes) = @_;
@@ -107,7 +92,6 @@ sub filtraPorParametroDeClave(){
 	my ($filtro, $valorParametro, %expedientes) = @_;
 	my @filtExp = split(",",$valorParametro);
 	my $length = @filtExp;
-	print $filtro;
 	my %expedientesSal;
 	foreach $key (keys(%expedientes)){
 		my $encontrado = 0; my $cantidad = 0;
@@ -116,7 +100,7 @@ sub filtraPorParametroDeClave(){
 		given($filtro){
 			when("expediente") { $param = &filtrarExpediente($key); }
 			when("camara") { $param = &filtrarCamara($key); }
-			when("tribunal") { $param = &filtrarExpediente($key); }
+			when("tribunal") { $param = &filtrarTribunal($key); }
 		}
 		
 		for($i=0;$i<$length;$i++){
@@ -127,7 +111,7 @@ sub filtraPorParametroDeClave(){
 			}
 		}
 		
-		if($cantidad == $length){
+		if($cantidad == $length && $filtro eq "expediente"){
 			last;
 		}
 	}
@@ -142,16 +126,46 @@ sub filtrarExpediente(){
 
 sub filtrarCamara(){
 	my ($key) = @_;
-	my ($key,$cam,) = split(";",$key);
+	my ($x,$cam,) = split(";",$key);
 	return $cam;
 }	
 
 sub filtrarTribunal(){
 	my ($key) = @_;
-	my ($key,$cam,$trib) = split(";",$key);
+	my ($x,$y,$trib) = split(";",$key);
 	return $trib;
 }
 
 ####################################### Filtros Pedidos  ##########################################################		
+
+sub filtraPorAccion(){
+	my ($valorParametro, %expedientes) = @_;
+	my %expedientesSal;
+	foreach $key (keys(%expedientes)){
+		my $encontrado = 0; my $cantidad = 0;
+		
+		my ($x,$y,$z,$w,$accion) = split(";",$expedientes{$key});
+		
+		chomp($accion);
+		
+		if($accion eq $valorParametro){
+			$expedientesSal{$key} = $expedientes{$key};
+		}
+	}
+	return %expedientesSal;
+}
+
+#######################################################################################################################
+
+sub clonarHash(){
+	my(%exp1) = @_;
+	my %exp2;
+	foreach $key (keys(%exp1)){
+		$exp2{$key} = $exp1{$key};
+	}
+	
+	return %exp2;
+}
+
 	
 1;

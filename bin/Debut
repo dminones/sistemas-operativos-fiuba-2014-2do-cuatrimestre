@@ -5,6 +5,11 @@
 K_FALSE=0
 K_TRUE=1
 
+echo_y_log(){
+	echo "$1"
+	Log "$1"
+}
+
 AMBIENTE_INICIALIZADO=$(checkearAmbiente)
 if [ $AMBIENTE_INICIALIZADO -eq $K_FALSE ];
 then
@@ -19,14 +24,33 @@ then
         exit
 fi
 
+run(){
+	local CHILD_PID=0
+	local ESTA_CORRIENDO=1
+	initProcess "$1"
+	if [ "$ESTA_CORRIENDO" == "1" ] && [ "$1" != "$RECEPT" ]
+	then
+		echo_y_log "Invocacion de $1 pospuesta para el siguiente ciclo"
+	else
+		if [ $CHILD_PID -ne 0 ]
+		then 
+			echo_y_log "$1 corriendo bajo el nro.: $CHILD_PID"
+		else
+			echo_y_log "No pudo iniciarse $1"
+		fi
+	fi
+}
+
 case "$1" in
 
-$RECEPT)  initProcess $1
+$RECEPT)  run $1
     ;;
-$FSOLDES)  initProcess $1
+$FSOLDES)  run $1
     ;;
-$CDOSSIERE)  initProcess $1
+$CDOSSIERE)  run $1
     ;;
-*) echo "El comando $1 no existe"
+$LISTE)  run $1
+    ;;
+*) echo_y_log "El comando $1 no existe"
    ;;
 esac

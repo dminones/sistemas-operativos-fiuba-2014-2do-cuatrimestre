@@ -48,7 +48,6 @@ format_bank(){
 #$1:file
 processFile(){
 	local FILE=$1	
-	echo "archivo a procesar: $GRUPO$ACEPDIR/$FILE"
 
 	myLog 'processFile' 'info' "Archivo a procesar:$FILE"
 	local BANCO=`echo $FILE | sed 's/_.*$//'`
@@ -60,11 +59,9 @@ processFile(){
 	if [ $ACTION -eq $K_ACTION_ALTA ] || [ $ACTION -eq $K_ACTION_REEMPLAZO ]; then
 		processValidFile "$ACTION" "$FILE" "$BANCO" "$FECHA"
 	elif [ $ACTION -eq $K_ACTION_ANTERIOR ]; then
-		echo "es anterior"
 		myLog 'processFile' 'info' "Fecha del Archivo anterior a la existente. Se rechaza el archivo"
 		moveRejectedFile "$FILE"
 	else
-		echo "es duplicado"
 		myLog 'processFile' 'info' "Archivo duplicado. Se rechaza el archivo"
 		moveRejectedFile "$FILE"
 	fi
@@ -121,7 +118,6 @@ moveProcessedFile(){
 
 #1)fileName
 moveRejectedFile(){
-	echo "rechazo: $1"
 	mover "$LOG_FILE" "moveRejectedFileFile" "$DUPDIR" "$1" "$GRUPO$ACEPDIR" "$GRUPO$RECHDIR"
 }
 

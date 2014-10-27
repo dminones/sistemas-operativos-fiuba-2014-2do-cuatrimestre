@@ -1,0 +1,17 @@
+#!/bin/bash
+
+rm -Rf dist
+mkdir dist
+mkdir dist/tp
+mkdir dist/conf
+mkdir dist/tp/bin
+mkdir dist/tp/maedir
+
+cp -R bin/* dist/tp/bin
+cp Deployer dist/tp/Deployer
+cp README.md dist
+cp -R maedir/* dist/tp/maedir
+
+cd dist
+
+tar -cvzf grupo05.tgz *
