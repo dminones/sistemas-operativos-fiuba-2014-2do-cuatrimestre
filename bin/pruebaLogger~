@@ -1,5 +1,0 @@
-#!/bin/bash
-. Logger
-
-#log "logdir/file" "funcion" "info" "probando"
-log "testFile" "funcion" "info" "probando"
