@@ -680,7 +680,7 @@ sub printEncabezado(){
 	my($key,$value) = @_;
 	
 	my($exp,$cam,$trib) = split(";",$key);
-	my($nomb,$x,$y,$z,$W) = split(";",$key);
+	my($nomb,$x,$y,$z,$W) = split(";",$value);
 	my $result;
 	
 	$result = "\n";	
