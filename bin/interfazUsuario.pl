@@ -6,7 +6,7 @@ use feature qw(switch);
 use POSIX qw(strftime);
 
 sub introduction(){
-	print "Sistema Liste para consultas. TP Sistemas Operativos - 2°2014 - Grupo 9\n";
+	print "Sistema Liste para consultas. TP Sistemas Operativos - 2°2014 - Grupo 5\n";
 	print "\n";
 }
 
