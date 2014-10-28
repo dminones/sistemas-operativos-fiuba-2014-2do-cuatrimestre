@@ -1,0 +1,194 @@
+#!/bin/bash
+
+. Logger
+K_FALSE=0
+K_TRUE=1
+
+logMessage(){
+	local LOG_FILE="$GRUPO$LOGDIR""/Initier"
+	local WHERE=$1
+	local CODE=$2
+	local DESCRIPTION=$3
+	log "$LOG_FILE" "$WHERE" "$CODE" "$DESCRIPTION"
+}
+
+listarContenido(){
+	local FILES=`ls -B "$1"` #ignora archivos con ~
+	for FILE_ITEM in $FILES;
+	do
+		#evitar procesar carpetas
+		if [[ -f $1$FILE_ITEM ]]; then
+			echo "archivo: $FILE_ITEM"
+			logMessage "Initier" "info" "archivo: $FILE_ITEM"
+		fi
+	done
+}
+
+iniciarVariablesDeAmbiente(){
+	. "../conf/Deployer.conf"
+
+	local MENSAJE="TP SO7508 Segundo Cuatrimestre 2014. Tema E Copyright © Grupo xx"
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+	export GRUPO
+
+	MENSAJE="Directorio Configuracion: $GRUPO$CONFDIR"
+	export CONFDIR
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+	listarContenido "$GRUPO$CONFDIR/"
+
+	MENSAJE="Directorio Ejecutables: $BINDIR"
+	export BINDIR
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+	listarContenido "$GRUPO$BINDIR/"
+
+	MENSAJE="Directorio Datos Maestros y Tablas: $MAEDIR"
+	export MAEDIR
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+	listarContenido "$GRUPO$MAEDIR/"
+
+	MENSAJE="Directorio Flujo de Novedades: $NOVEDIR"
+	export NOVEDIR
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+
+	MENSAJE="Directorio Novedades Aceptadas: $ACEPDIR"
+	export ACEPDIR
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+
+	MENSAJE="Directorio Pedidos e Informes de Salida: $REPODIR"
+	export REPODIR
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+
+	MENSAJE="Directorio Archivos Rechazados: $RECHDIR"
+	export RECHDIR
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+
+	MENSAJE="Directorio de Logs de Comandos: $LOGDIR"
+	export LOGDIR
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+
+	MENSAJE="SubDirectorio de Resguardo de Archivos Duplicados: $DUPDIR"
+	export DUPDIR
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+
+	local PATH_SETEADO=`echo "$PATH" | grep -c "\:$GRUPO$BINDIR"`
+	if [ $PATH_SETEADO -eq 0 ];
+	then
+		PATH=$PATH\:"$GRUPO$BINDIR"
+		export PATH
+	fi
+
+	MENSAJE="Espacio mínimo libre para flujo de novedades: $DATASIZE Mb"
+	export DATASIZE
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+
+	MENSAJE="Estado del Sistema: INICIALIZADO"
+	echo "$MENSAJE"
+	logMessage "Initier" "info" "$MENSAJE"
+}
+
+checkearInstalacionCompleta(){
+	local COMPLETA=$K_TRUE
+
+	local ARCHIVO_BANCOS="$GRUPO$MAEDIR/bancos.dat"
+	local ARCHIVO_BANCOS_OK=`chequearArchivo "$ARCHIVO_BANCOS"`
+
+	local ARCHIVO_CAMARAS="$GRUPO$MAEDIR/camaras.dat"
+	local ARCHIVO_CAMARAS_OK=`chequearArchivo "$ARCHIVO_CAMARAS"`
+
+	local ARCHIVO_PJN="$GRUPO$MAEDIR/pjn.dat"
+	local ARCHIVO_PJN_OK=`chequearArchivo "$ARCHIVO_PJN"`
+
+	if [ $ARCHIVO_BANCOS_OK -eq $K_FALSE ] || [ $ARCHIVO_CAMARAS_OK -eq $K_FALSE ] || [ $ARCHIVO_PJN_OK -eq $K_FALSE ];
+	then
+		echo "$K_FALSE"
+	else
+		echo "$K_TRUE"
+	fi
+}
+
+chequearArchivo(){
+	local ARCHIVO_OK=$K_TRUE
+	local EXISTE=$K_TRUE
+	local PERMISO=$K_TRUE
+
+	if [ ! -f $1 ];
+	then
+		EXISTE=$K_FALSE
+		logMessage "Initier" "war" "Falta el archivo $1. Instale nuevamente"
+	else
+		PERMISO=`chequearPermisosArchivo "$1"`
+		if [ $PERMISO -eq $K_FALSE ];
+		then
+			logMessage "Initier" "war" "el archivo $1 no tiene permiso de lectura"
+		fi
+	fi
+
+	if [ $EXISTE -eq $K_FALSE ] || [ $PERMISO -eq $K_FALSE ];
+	then
+		echo "$K_FALSE"
+	else
+		echo "$K_TRUE"
+	fi
+}
+
+chequearPermisosArchivo(){
+	local PERMISO_LECTURA=$K_TRUE
+	if [ ! -r $1 ];
+	then
+		chmod +r "$1"
+		logMessage "chequearPermisosArchivo" "info" "Agregado permiso de lectura al archivo: $1"
+	fi
+
+	if [ ! -r $1 ];
+	then
+		PERMISO_LECTURA=$K_FALSE
+	fi
+
+	echo "$PERMISO_LECTURA"
+}
+
+
+arrancarRecept(){
+	echo "Desea efectuar la activacion del Recept? Si - No"
+	read respuesta
+	if [[ $respuesta = 'Si' ]];
+	then
+		Debut Recept
+		echo "Recept corriendo. Si quiere detenerlo ejecute el comando Stop Recept"
+	else
+		logMessage "arrancarRecept" "info" "Recept no activado. Si quiere arrancarlo ejecute el comando 'Debut Recept'"
+		echo "Recept no activado. Si quiere arrancarlo ejecute el comando 'Debut Recept'"
+	fi
+}
+
+#ejecucion
+AMBIENTE_SETEADO=$(./checkearAmbiente)
+if [ $AMBIENTE_SETEADO -eq $K_TRUE ];
+then
+	echo "Ambiente ya inicializado, si quiere reiniciar termine su sesion e ingrese nuevamente"
+	logMessage "Initier" "war" "Ambiente ya inicializado, si quiere reiniciar termine su sesion e ingrese nuevamente"
+
+	INSTALACION_COMPLETA=`checkearInstalacionCompleta`
+	if [ $INSTALACION_COMPLETA -eq $K_TRUE ];
+	then
+		echo "la instalacion esta completa"
+	else
+		echo "faltan cosas"
+		#implementar rehacer instalacion
+	fi
+
+else #ambiente no esta seteado
+	iniciarVariablesDeAmbiente
+	arrancarRecept
+fi

@@ -417,8 +417,8 @@ sub seleccionarPedido() {
 		print "7- Pedido por nivel de urgencia de 2 dias\n";
 		print "8- Pedido por nivel de urgencia de 4 dias\n";		
 		print "\n";
-		print "Seleccione el tipo de pedido. Pueden ser uno, varios o todos. El formato es ped1,ped2,...,pedN \n";
-
+		print "Seleccione el tipo de pedido. Pueden ser uno, varios o todos. El formato es ped1,ped2,...,pedN ";
+		print "En el caso de no seleccionar nada se tomara como que se seleccionaron todos.\n";
 		
 		$option = <STDIN>;
 		chomp($option);
